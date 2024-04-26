@@ -82,22 +82,39 @@ class AdminCreateView(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated()]
     
 
+
+      #CATEGORY SECTION FOR ADMIN AND CUSTOMER
+
 # CATEGORY FOR ISADMIN
-class CategoryView(viewsets.ModelViewSet):
+class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
 
-    def get(self, request):         # IS ADMIN CAN GET ALL CATEGORY
+    def list(self, request):         # IS ADMIN CAN GET ALL CATEGORY  (API= WORKING)
         category = self.get_queryset()
         serializer = self.serializer_class(category, many= True)
         return Response(serializer.data, status= status.HTTP_200_OK)
     
-    def post(self, request):          #IS ADMIN CAN ADD NEW CATEGORY
+    def post(self, request):          #IS ADMIN CAN ADD NEW CATEGORY   (API= WORKING)
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
             return Response(serializer.data, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, category_id):      #IS ADMIN CAN UPDATE CATEGORY   (API= WORKING)
+        query_set = get_object_or_404( Category, category_id = category_id)
+        serializer = self.serializer_class(query_set, data= request.data)
+        if serializer.is_valid(raise_exception= True):
+            serializer.save()
+            return Response(serializer.data, status= status.HTTP_200_OK)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, category_id):          #IS ADMIN CAN DELETE CATEGORY     (API= WORKING)    
+        query_set = get_object_or_404(Category, category_id= category_id)
+        query_set.delete()
+        return Response({'Deleted Sucessfully'}, status= status.HTTP_200_OK)
+    
     
 # ALL USERS FOR IS ADMIN
 # class CustomUserView(viewsets.ModelViewSet):
