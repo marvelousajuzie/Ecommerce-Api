@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_spectacular',
     'rest_framework',
     'Ecomapi',
 ]
@@ -130,7 +132,21 @@ AUTH_USER_MODEL = 'Ecomapi.CustomUsers'
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ]
+    ),
+    
+    "DEFAULT_SCHEMA_CLASS" : "drf_spectacular.openapi.AutoSchema",
+
+
+    # 'DEFAULT_PAGINATION_CLASS': ('rest_framework.pagination.PageNumberPagination',)
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    
+}
+
+SPECTACULAR_SETTING = {
+    'TITLE': 'ECOMMERCE APP'
 }

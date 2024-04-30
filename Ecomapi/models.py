@@ -19,7 +19,7 @@ class CustomUsers(AbstractUser):
     username = models.CharField(max_length=200, verbose_name= _('Username'))
    
     is_staff = models.BooleanField('is_staff', False)
-    role = models.ForeignKey(Role, on_delete= models.SET_NULL, null=True, blank=True)             
+    role = models.ForeignKey(Role, on_delete= models.CASCADE)             
 
     USERNAME_FIELD = 'email' 
     REQUIRED_FIELDS = ['username']
@@ -73,7 +73,7 @@ class Order(models.Model):
     order_id = models.UUIDField(primary_key= True, default= uuid4, editable=False)
     user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product)
-    total_price = models.IntegerField()
+    total_price = models.DecimalField(max_digits= 20, decimal_places=3)
     order_date = models.DateField(auto_now_add= True)
     order_status= models.CharField(max_length=50, default= 'pending')
     shipping_address = models.CharField(max_length= 150)

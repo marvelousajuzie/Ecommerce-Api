@@ -1,12 +1,18 @@
 from django.urls import path, include
-from .views import ProductViewSet, UsersRegisterViewSet, UsersLoginViewSet, CategoryViewSet
+from .views import AdminProductViewSet, AdminCategoryViewSet,  AdminCreateViewSet
+from .views import UsersRegisterViewSet, UsersLoginViewSet, UserOrderViewSet
 from rest_framework.routers import DefaultRouter
 
 
+
 router = DefaultRouter()
-router.register(r'product', ProductViewSet, basename= 'product')  #WORKING FOR PRODUCT
+                                   # FOR ADMIN USERS
+router.register(r'adminProductView', AdminProductViewSet, basename= 'product')  #WORKING FOR PRODUCT
+router.register(r'admincategoryview', AdminCategoryViewSet, basename='category')    #WORKING FOR CATEGORY
+router.register(r'admincreate',  AdminCreateViewSet, basename='admincreate')
 
 
+                         #CUSTOMER REGISTRATION/LOGIN
 router.register(r'userregister', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
 router.register(r'userlogin', UsersLoginViewSet, basename= 'userlogin')   # USER LOGIN
 
@@ -14,11 +20,10 @@ router.register(r'userlogin', UsersLoginViewSet, basename= 'userlogin')   # USER
 urlpatterns = [
 
     path('', include(router.urls)),
-
-
-    path('getcategory/', CategoryViewSet.as_view({'get': 'list'})),
-    path('postcategory/', CategoryViewSet.as_view({'get': 'post'})),
-    path('updatecategory/<uuid:category_id>/', CategoryViewSet.as_view({'get': 'put'})),
-    path('deletecategory/<uuid:category_id>/', CategoryViewSet.as_view({'get': 'delete'})),
-
+    
+    path('userOrderView/',UserOrderViewSet.as_view({'get': 'create'})),
+    #  path('userProductView/', UserProductViewSet.as_view({'get': 'create'})),
+    # path('payment/', PaymentViewSet.as_view({'get': 'post'})),  
 ]
+
+

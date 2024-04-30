@@ -1,3 +1,4 @@
+from typing import Any
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
@@ -5,16 +6,24 @@ from .models import CustomUsers, Role, Product, Order, Payment, Category, Cart, 
 
 
 #PRODUCT SERIALIZER
-class ProductSerializer(serializers.ModelSerializer):        
+class ProductSerializer(serializers.ModelSerializer):     
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = ['product_id', 'name', 'description', 'price', 'stock_quantity', 'category', 'images', 'tags', 'rating']
 
 
 # IS ADMIN SERIALIZER
 class AdminCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only = True)
-    password2 = serializers.CharField(write_only = True)      
+    password2 = serializers.CharField(write_only = True)
+
+    role = serializers.SlugRelatedField(
+        slug_field= 'name',
+        queryset = Role.objects.all(),
+        required = False,
+        allow_null = True,
+        error_messages = {'messages':'Role Does Not EXist'}
+    )     
     class Meta:
         model = CustomUsers
         fields = ['email', 'username', 'password', 'password2', 'role']
@@ -29,13 +38,13 @@ class AdminCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Password Do Not Match')
         return data
     
-
     def create(self, validated_data):
         validated_data.pop('password2')
         user = CustomUsers.objects.create_user(
             email = validated_data['email'],
             username = validated_data['username'],
             password = validated_data.get('password'),
+            role = validated_data.get('role'),
             
         )
         return user
@@ -102,16 +111,14 @@ class UsersRegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
-class UsersLoginSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(max_length = 200)
-    password = serializers.CharField(max_length = 100, write_only = True)
-
+class UsersLoginSerializer(serializers.Serializer):
+    email = serializers.CharField(max_length =200)
+    password = serializers.CharField(write_only = True)
 
     class Meta:
         model = CustomUsers
         fields = ['email', 'password']
-
-
+            
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
@@ -119,16 +126,19 @@ class UsersLoginSerializer(serializers.ModelSerializer):
         if email and password:
             user = authenticate(email= email, password= password)
             if not user:
-                raise serializers.ValidationError({'Invalid Credidentials'})
+                raise serializers.ValidationError('Invalid Credidentials')
         else:
-            raise serializers.ValidationError({'Must Include Email and Password'})
-        attrs['CustomUsers'] = user
-        return attrs
-            
+            raise serializers.ValidationError('Must Include Email and Password')
+        return {'user': user}
+    
+ 
+          # user_id = serializers.StringRelatedField(read_only=True)      
         
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    # products = ProductSerializer(many=True, read_only=True)
+
     class Meta:
         model = Order
         fields = '__all__'
@@ -146,3 +156,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
+
+
+
