@@ -3,9 +3,9 @@ info:
   title: ''
   version: 0.0.0
 paths:
-  /api/admincreate/:
+  /api/adminProductView/:
     get:
-      operationId: api_admincreate_retrieve
+      operationId: api_adminProductView_list
       tags:
       - api
       security:
@@ -15,11 +15,142 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminCreate'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
           description: ''
-  /api/category/:
+    post:
+      operationId: api_adminProductView_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+  /api/adminProductView/{product_id}/:
     get:
-      operationId: api_category_list
+      operationId: api_adminProductView_retrieve
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+    put:
+      operationId: api_adminProductView_update
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+    patch:
+      operationId: api_adminProductView_partial_update
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+    delete:
+      operationId: api_adminProductView_destroy
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/admincategoryview/:
+    get:
+      operationId: api_admincategoryview_list
       tags:
       - api
       security:
@@ -34,7 +165,7 @@ paths:
                   $ref: '#/components/schemas/Category'
           description: ''
     post:
-      operationId: api_category_create
+      operationId: api_admincategoryview_create
       tags:
       - api
       requestBody:
@@ -58,9 +189,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Category'
           description: ''
-  /api/category/{category_id}/:
+  /api/admincategoryview/{category_id}/:
     get:
-      operationId: api_category_retrieve
+      operationId: api_admincategoryview_retrieve
       parameters:
       - in: path
         name: category_id
@@ -81,7 +212,7 @@ paths:
                 $ref: '#/components/schemas/Category'
           description: ''
     put:
-      operationId: api_category_update
+      operationId: api_admincategoryview_update
       parameters:
       - in: path
         name: category_id
@@ -114,7 +245,7 @@ paths:
                 $ref: '#/components/schemas/Category'
           description: ''
     patch:
-      operationId: api_category_partial_update
+      operationId: api_admincategoryview_partial_update
       parameters:
       - in: path
         name: category_id
@@ -146,7 +277,7 @@ paths:
                 $ref: '#/components/schemas/Category'
           description: ''
     delete:
-      operationId: api_category_destroy
+      operationId: api_admincategoryview_destroy
       parameters:
       - in: path
         name: category_id
@@ -162,23 +293,9 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/order/:
+  /api/admincreate/:
     get:
-      operationId: api_order_retrieve
-      tags:
-      - api
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-          description: ''
-  /api/product/:
-    get:
-      operationId: api_product_list
+      operationId: api_admincreate_list
       tags:
       - api
       security:
@@ -190,23 +307,23 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Product'
+                  $ref: '#/components/schemas/AdminCreate'
           description: ''
     post:
-      operationId: api_product_create
+      operationId: api_admincreate_create
       tags:
       - api
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Product'
+              $ref: '#/components/schemas/AdminCreate'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Product'
+              $ref: '#/components/schemas/AdminCreate'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Product'
+              $ref: '#/components/schemas/AdminCreate'
         required: true
       security:
       - jwtAuth: []
@@ -215,11 +332,319 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/AdminCreate'
+          description: ''
+  /api/admincreate/{id}/:
+    get:
+      operationId: api_admincreate_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCreate'
+          description: ''
+    put:
+      operationId: api_admincreate_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCreate'
+          description: ''
+    patch:
+      operationId: api_admincreate_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCreate'
+          description: ''
+    delete:
+      operationId: api_admincreate_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/userCatView/:
+    get:
+      operationId: api_userCatView_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+          description: ''
+    post:
+      operationId: api_userCatView_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Category'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Category'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/userCatView/{category_id}/:
+    get:
+      operationId: api_userCatView_retrieve
+      parameters:
+      - in: path
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this category.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    put:
+      operationId: api_userCatView_update
+      parameters:
+      - in: path
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this category.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Category'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Category'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    patch:
+      operationId: api_userCatView_partial_update
+      parameters:
+      - in: path
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this category.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategory'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    delete:
+      operationId: api_userCatView_destroy
+      parameters:
+      - in: path
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this category.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/userOrderView/:
+    get:
+      operationId: api_userOrderView_retrieve
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/userProductView/:
+    get:
+      operationId: api_userProductView_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+          description: ''
+    post:
+      operationId: api_userProductView_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/Product'
           description: ''
-  /api/product/{product_id}/:
+  /api/userProductView/{product_id}/:
     get:
-      operationId: api_product_retrieve
+      operationId: api_userProductView_retrieve
       parameters:
       - in: path
         name: product_id
@@ -232,6 +657,7 @@ paths:
       - api
       security:
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -240,7 +666,7 @@ paths:
                 $ref: '#/components/schemas/Product'
           description: ''
     put:
-      operationId: api_product_update
+      operationId: api_userProductView_update
       parameters:
       - in: path
         name: product_id
@@ -265,6 +691,7 @@ paths:
         required: true
       security:
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -273,7 +700,7 @@ paths:
                 $ref: '#/components/schemas/Product'
           description: ''
     patch:
-      operationId: api_product_partial_update
+      operationId: api_userProductView_partial_update
       parameters:
       - in: path
         name: product_id
@@ -297,6 +724,7 @@ paths:
               $ref: '#/components/schemas/PatchedProduct'
       security:
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -305,7 +733,7 @@ paths:
                 $ref: '#/components/schemas/Product'
           description: ''
     delete:
-      operationId: api_product_destroy
+      operationId: api_userProductView_destroy
       parameters:
       - in: path
         name: product_id
@@ -318,6 +746,7 @@ paths:
       - api
       security:
       - jwtAuth: []
+      - {}
       responses:
         '204':
           description: No response body
@@ -833,6 +1262,26 @@ components:
       - shipping_address
       - total_price
       - user_id
+    PatchedAdminCreate:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email Address
+          maxLength: 254
+        username:
+          type: string
+          maxLength: 200
+        password:
+          type: string
+          writeOnly: true
+        password2:
+          type: string
+          writeOnly: true
+        role:
+          type: string
+          nullable: true
     PatchedCategory:
       type: object
       properties:
@@ -852,11 +1301,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        id:
-          type: string
-          format: uuid
-        quantity:
-          type: integer
         name:
           type: string
           maxLength: 250
@@ -925,11 +1369,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        id:
-          type: string
-          format: uuid
-        quantity:
-          type: integer
         name:
           type: string
           maxLength: 250
@@ -957,12 +1396,10 @@ components:
           maxLength: 50
       required:
       - description
-      - id
       - images
       - name
       - price
       - product_id
-      - quantity
       - stock_quantity
     UsersLogin:
       type: object

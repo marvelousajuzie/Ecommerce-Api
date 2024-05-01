@@ -132,7 +132,11 @@ class UsersLoginSerializer(serializers.Serializer):
         return {'user': user}
     
  
-          # user_id = serializers.StringRelatedField(read_only=True)      
+
+class CartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cart
+        fields = '__all__'   
         
 
 
@@ -158,4 +162,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
+class CartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cart
+        fields = '__all__'

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from .serializer import ProductSerializer, UsersRegisterSerializer,UsersLoginSerializer, OrderSerializer, PaymentSerializer, CategorySerializer, CustomUserSerializer, ReviewSerializer
-from .serializer import AdminCreateSerializer
+from .serializer import AdminCreateSerializer, CartSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -9,7 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
-from .models import Product, Order, Payment, CustomUsers, Category, Review
+from .models import Product, Order, Payment, CustomUsers, Category, Review, Cart
 
             
             
@@ -162,7 +162,7 @@ class ReviewView(viewsets.ModelViewSet):
 
 
 
-                               #CUSTOMER REGISTRATION SECTION
+                               #CUSTOMER  SECTION
 # CUSTOMER REGISTRATION
 class UsersRegisterViewSet(viewsets.ModelViewSet):
     serializer_class = UsersRegisterSerializer
@@ -176,31 +176,7 @@ class UsersRegisterViewSet(viewsets.ModelViewSet):
             user = serializer.data
             return Response({'data': user}, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-
-
-
-
-                   #CUSTOMER SECTION
-
-# # #FOR CUSTOMERS PRODUCTS VIEW
-# class UserProductViewSet(viewsets.ModelViewSet):      
-
-#     serializer_class = ProductSerializer
-#     queryset = Product.objects.all()
-
-
-#     # def list(self, request):            #CUSTOMERS CAN GET All PRODUCT    #(API= WORKING)
-#     #     product = self.get_queryset()
-#     #     serializer = self.serializer_class(product, many= True)
-#     #     return Response(serializer.data, status= status.HTTP_200_OK)
     
-
-#     def list(self, request, product_id):         #CUSTOMERS CAN GET SINGLE PRODUCT    #(API= WORKING)
-#         product = get_object_or_404(Product, product_id= product_id)
-#         serializer= self.serializer_class(product, many= False)
-#         return Response(serializer.data, status= status.HTTP_200_OK)
-
-
 
 
 
@@ -213,7 +189,7 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return []
 
-    def create(self, request):                                 
+    def create(self, request):                                 #(API= WORKING) 
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid():
             user= serializer.validated_data['user']
@@ -232,6 +208,43 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
     #         valid_until=datetime.fromtimestamp(refresh['exp']),
     #     )
     #     return refresh
+
+
+
+ #FOR CUSTOMERS PRODUCTS VIEW
+class UserProductViewSet(viewsets.ModelViewSet):      
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all()
+
+
+    def get(self, request):            #CUSTOMERS CAN GET All PRODUCT    #(API= WORKING)
+        product = self.get_queryset()
+        serializer = self.serializer_class(product, many= True)
+        return Response(serializer.data, status= status.HTTP_200_OK)
+    
+
+    def get(self, request, product_id):         #CUSTOMERS CAN GET SINGLE PRODUCT    #(API= WORKING)        product = get_object_or_404(Product, product_id= product_id)
+        serializer= self.serializer_class(product_id, many= False)
+        return Response(serializer.data, status= status.HTTP_200_OK)
+    
+
+#CUSTOMER CATEGORY
+class UsercategoryView(viewsets.ModelViewSet):  
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
+
+    def get(self, request):             #CUSTOMERS CAN GET All CATEGORY   #(API= WORKING)
+        category = self.get_queryset()
+        serializer = self.serializer_class(category, many= True)
+        return Response(serializer.data, status= status.HTTP_200_OK)
+    
+    def get(self, request, category_id):      #CUSTOMERS CAN GET SINGLE PRODUCT    #(API= WORKING)
+        serializer = self.serializer_class(category_id, many= False)
+        return Response(serializer.data, status= status.HTTP_200_OK)
+
+
+
+
     
 #CUSTOMER LOGOUT
 class UserLogoutView(viewsets.ModelViewSet):
@@ -304,15 +317,24 @@ class UserOrderViewSet(viewsets.ModelViewSet):
 #         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
 
-#CUSTOMER CATEGORY
-class categoryView(viewsets.ModelViewSet):
-    serializer_class = CategorySerializer
-    queryset = Category.objects.all()
+class AddToCartView(viewsets.ModelViewSet):
+    serializer_class = CartSerializer
+    cart = Cart.objects.all()
 
-    def get(self, request):
-        category = self.get_queryset()
-        serializer = self.serializer_class(category, many= True)
-        return Response(serializer.data, status= status.HTTP_200_OK)
+    def post(self, request):
+        serializer = self.serializer_class(data= request.data)
+        if serializer.is_valid():
+            # product_data = serializer.validated_data.get('Product')
+            # total_price = sum(Product.price for Product in product_data)
+            # user_id = request.user
+            # cart = Cart.objects.create(
+            #               user_id = user_id,
+            #               total_price = total_price,
+            #               product = Product
+            #               )
+            serializer.save()
+            return Response({'messages': 'Successfully Added To Cart'}, status= status.HTTP_200_OK)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
 
 
