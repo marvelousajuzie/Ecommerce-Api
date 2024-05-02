@@ -17,14 +17,20 @@ router.register(r'admincreate',  AdminCreateViewSet, basename='admincreate')  #A
 router.register(r'userregister', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
 router.register(r'userlogin', UsersLoginViewSet, basename= 'userlogin')   # USER LOGIN
 router.register(r'userProductView', UserProductViewSet, basename= 'userProductView')  #USER PRODUCT VIEW 
-router.register(r'userCatView', UsercategoryView, basename= 'userCatView')
+router.register(r'userCategoryView', UsercategoryView, basename= 'userCategoryView')
+
+
+
+
+# router.register(r'AddToCartView', AddToCartView, basename= 'AddToCartView')
 
 
 urlpatterns = [
 
     path('', include(router.urls)),
     
-    path('AddToCartView/',AddToCartView.as_view({'get': 'create'})),
+    path('AddToCartView/',AddToCartView.as_view({'get': 'post'})),
+     path('AddToCartView/',AddToCartView.as_view({'get': 'get'})),
     path('userOrderView/',UserOrderViewSet.as_view({'get': 'create'})),
     # path('payment/', PaymentViewSet.as_view({'get': 'post'})),
 ]

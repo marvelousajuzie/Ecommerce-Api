@@ -133,19 +133,39 @@ class UsersLoginSerializer(serializers.Serializer):
     
  
 
-class CartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cart
-        fields = '__all__'   
+# class CartSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Cart
+#         fields = '__all__'   
         
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    # products = ProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ['order_id', 'user_id', 'products', 'total_price', 'order_date', 'order_status', 'shipping_address', 'payment_method']
+        read_only_fields = ['total_price']
+
+
+    def create(self, validated_data):
+        products_data = validated_data.pop('products')
+        total_price = sum(product.price for product in products_data)
+        order = Order.objects.create(**validated_data, total_price=total_price)
+        order.products.set(products_data)
+        return order
+    
+
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['order_id', 'user_id', 'products', 'total_price', 'order_date', 'order_status', 'shipping__address', 'payment_method']
+        read_only_fields = ['total_price']
+
+        
+
 
 
 
@@ -166,3 +186,16 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = '__all__'
+
+    def create(self, validated_data):
+        products_data = validated_data.pop('product', [])
+        cart = Cart.objects.create(**validated_data)
+        total_price = 0
+        for product_data in products_data:
+            product = product_data
+            quantity = validated_data.get('quantity', 1)  # Default quantity is 1 if not provided
+            total_price += product.price * quantity
+            cart.product.add(product, through_defaults={'quantity': quantity})
+        cart.total_price = total_price
+        cart.save()
+        return cart

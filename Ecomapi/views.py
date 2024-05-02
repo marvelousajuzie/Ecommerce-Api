@@ -22,13 +22,13 @@ class AdminProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
 
-    def get(self, request):       #IS ADMIN CAN GET ALL PRODUCTS   (API= WORKING)
+    def get(self, request, *args, **Kwargs):       #IS ADMIN CAN GET ALL PRODUCTS   (API= WORKING)
         product = self.get_queryset()
         serializer = self.serializer_class(product, many= True)
         return Response(serializer.data, status= status.HTTP_200_OK)
     
 
-    def post(self, request):                   #IS ADMIN CAN POST   (API= WORKING)
+    def post(self, request, *args, **Kwargs):                   #IS ADMIN CAN POST   (API= WORKING)
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
@@ -36,7 +36,7 @@ class AdminProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-    def put(self, request, product_id):    #IS ADMIN CAN UPDATE   (API= WORKING)
+    def put(self, request, product_id, *args, **Kwargs):    #IS ADMIN CAN UPDATE   (API= WORKING)
         query_set = get_object_or_404(Product, product_id= product_id)
         serializer = self.serializer_class(query_set, data=request.data, partial= True)
         if serializer.is_valid(raise_exception= True):
@@ -45,7 +45,7 @@ class AdminProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
 
-    def delete(self, request, product_id):            # IS ADMIN CAN DELETE    (API= WORKING)
+    def delete(self, request, product_id, *args, **Kwargs):            # IS ADMIN CAN DELETE    (API= WORKING)
         product = get_object_or_404( Product, product_id= product_id)
         product.delete()
         return Response({'message': 'Product Deleted Successfully'}, status= status.HTTP_200_OK)
@@ -60,19 +60,19 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
 
-    def list(self, request):         # IS ADMIN CAN GET ALL CATEGORY  (API= WORKING)
+    def list(self, request, *args, **Kwargs):         # IS ADMIN CAN GET ALL CATEGORY  (API= WORKING)
         category = self.get_queryset()
         serializer = self.serializer_class(category, many= True)
         return Response(serializer.data, status= status.HTTP_200_OK)
     
-    def post(self, request):          #IS ADMIN CAN ADD NEW CATEGORY   (API= WORKING)
+    def post(self, request, *args, **Kwargs):          #IS ADMIN CAN ADD NEW CATEGORY   (API= WORKING)
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
             return Response(serializer.data, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-    def put(self, request, category_id):      #IS ADMIN CAN UPDATE CATEGORY   (API= WORKING)
+    def put(self, request, category_id, *args, **Kwargs):      #IS ADMIN CAN UPDATE CATEGORY   (API= WORKING)
         query_set = get_object_or_404( Category, category_id = category_id)
         serializer = self.serializer_class(query_set, data= request.data)
         if serializer.is_valid(raise_exception= True):
@@ -80,7 +80,7 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status= status.HTTP_200_OK)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, category_id):          #IS ADMIN CAN DELETE CATEGORY     (API= WORKING)    
+    def delete(self, request, category_id, *args, **Kwargs):          #IS ADMIN CAN DELETE CATEGORY     (API= WORKING)    
         query_set = get_object_or_404(Category, category_id= category_id)
         query_set.delete()
         return Response({'Deleted Sucessfully'}, status= status.HTTP_200_OK)
@@ -169,7 +169,7 @@ class UsersRegisterViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return []
 
-    def create(self, request):                                     #(API= WORKING)
+    def create(self, request, *args, **Kwargs):                                     #(API= WORKING)
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
@@ -189,7 +189,7 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return []
 
-    def create(self, request):                                 #(API= WORKING) 
+    def create(self, request, *args, **Kwargs):                                 #(API= WORKING) 
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid():
             user= serializer.validated_data['user']
@@ -263,33 +263,16 @@ class UserOrderViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     serializer_class = OrderSerializer
+    queryset = Order.objects.all()
 
-    def create(self, request):             # CUSTOMERS TO ORDER PRODUCT
-        serializer = self.serializer_class(data= request.data)
-        if serializer.is_valid():
-            product_data = serializer.validated_data.get('Product')
-            if product_data is not None:
-                  total_price = sum(Product.price for Product in product_data)
-                  shipping_address = serializer.validated_data.get('shipping_address')
-                  payment_method = serializer.validated_data.get('payment method')
-                  user_id = request.user
-                  with transaction.atomic():
-                      order = Order.objects.create(
-                          user_id = user_id,
-                          total_price = total_price,
-                          shipping_address = shipping_address,
-                          payment_method = payment_method
-                          )
-                      order.products.add(*product_data)
-                      for product in product_data:
-                          product.stock_quantity -=1
-                          product.save()
-                          return Response({'messages': 'Your Order Has Been Placed'}, status= status.HTTP_200_OK)
-            else: 
-                return Response(serializer.errors)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    
-
+    def create(self, request, *args, **kwargs):
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                with transaction.atomic():
+                    order = serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -317,24 +300,23 @@ class UserOrderViewSet(viewsets.ModelViewSet):
 #         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
 
+
 class AddToCartView(viewsets.ModelViewSet):
     serializer_class = CartSerializer
-    cart = Cart.objects.all()
+    query_set = Cart.objects.all()
 
     def post(self, request):
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid():
-            # product_data = serializer.validated_data.get('Product')
-            # total_price = sum(Product.price for Product in product_data)
-            # user_id = request.user
-            # cart = Cart.objects.create(
-            #               user_id = user_id,
-            #               total_price = total_price,
-            #               product = Product
-            #               )
             serializer.save()
             return Response({'messages': 'Successfully Added To Cart'}, status= status.HTTP_200_OK)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request):
+        cart = self.get_queryset(user = request.user)
+        serializer = self.serializer_class(cart, many= True)
+        return Response(serializer.data, status= status.HTTP_200_OK)
+    
     
 
 
