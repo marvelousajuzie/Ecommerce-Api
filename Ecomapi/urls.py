@@ -1,6 +1,7 @@
 from django.urls import path, include
 from .views import AdminProductViewSet, AdminCategoryViewSet,  AdminCreateViewSet
-from .views import UsersRegisterViewSet, UsersLoginViewSet, UserOrderViewSet, UserProductViewSet, UsercategoryView
+from .views import UsersRegisterViewSet, UsersLoginViewSet, UserOrderViewSet, UserProductViewSet
+from .views import  UsercategoryViewSet, ReviewViewSet, IsadminOrderViewSet
 from .views import AddToCartView
 from rest_framework.routers import DefaultRouter
 
@@ -17,7 +18,8 @@ router.register(r'admincreate',  AdminCreateViewSet, basename='admincreate')  #A
 router.register(r'userregister', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
 router.register(r'userlogin', UsersLoginViewSet, basename= 'userlogin')   # USER LOGIN
 router.register(r'userProductView', UserProductViewSet, basename= 'userProductView')  #USER PRODUCT VIEW 
-router.register(r'userCategoryView', UsercategoryView, basename= 'userCategoryView')
+router.register(r'userCategoryView', UsercategoryViewSet, basename= 'userCategoryView')
+router.register(r'userOrderView',UserOrderViewSet, basename= 'userOrderView')
 
 
 
@@ -29,10 +31,10 @@ urlpatterns = [
 
     path('', include(router.urls)),
     
+    path('IsadminOrder/',IsadminOrderViewSet.as_view({'get': 'get'})),
     path('AddToCartView/',AddToCartView.as_view({'get': 'post'})),
-     path('AddToCartView/',AddToCartView.as_view({'get': 'get'})),
-    path('userOrderView/',UserOrderViewSet.as_view({'get': 'create'})),
     # path('payment/', PaymentViewSet.as_view({'get': 'post'})),
+    # path('reviewView/',ReviewViewSet.as_view({'get': 'create'})),
 ]
 
 

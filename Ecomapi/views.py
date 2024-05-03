@@ -3,6 +3,7 @@ from .serializer import ProductSerializer, UsersRegisterSerializer,UsersLoginSer
 from .serializer import AdminCreateSerializer, CartSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
+from datetime import datetime
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework import permissions
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -104,16 +105,18 @@ class AdminCreateViewSet(viewsets.ModelViewSet):
 
 
 # ORDER HISTORY FOR IsAdminUser
-# class OrderViewSet(viewsets.ModelViewSet):
-#     # permission_classes = [IsAdminUser]
-#     serializer_class = OrderSerializer
-#     queryset = Order.objects.all()
+class IsadminOrderViewSet(viewsets.ModelViewSet):
+    # permission_classes = [IsAdminUser]
+    serializer_class = OrderSerializer
+    queryset = Order.objects.all()
 
-#     def get(self, request):         #IS ADMIN USER CAN  GET ALL ORDERS
-#         order = self.get_queryset()
-#         serializer = self.serializer_class(order, many= True)
-#         return Response(serializer.save)
+    def get(self, request):         #IS ADMIN USER CAN  GET ALL ORDERS
+        order = self.get_queryset()
+        serializer = self.serializer_class(order, many= True)
+        return Response(serializer.save)
     
+
+
 
 #PAYMENT HISTORY FOR ISADMIN
 # class PaymentView(viewsets.ModelViewSet):
@@ -141,14 +144,14 @@ class AdminCreateViewSet(viewsets.ModelViewSet):
 
 
 
-# ISADMIN REVIEW
-class ReviewView(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializer
-    queryset = Review.objects.all()
-    def get(self, request):
-        review = self.get_queryset()
-        serializer = self.serializer_class(review)
-        return Response(serializer.data, status= status.HTTP_200_OK)
+# # ISADMIN REVIEW
+# class ReviewView(viewsets.ModelViewSet):
+#     serializer_class = ReviewSerializer
+#     queryset = Review.objects.all()
+#     def get(self, request):
+#         review = self.get_queryset()
+#         serializer = self.serializer_class(review)
+#         return Response(serializer.data, status= status.HTTP_200_OK)
     
     
     
@@ -223,13 +226,13 @@ class UserProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status= status.HTTP_200_OK)
     
 
-    def get(self, request, product_id):         #CUSTOMERS CAN GET SINGLE PRODUCT    #(API= WORKING)        product = get_object_or_404(Product, product_id= product_id)
+    def get(self, request, product_id):         #CUSTOMERS CAN GET SINGLE PRODUCT #(API= WORKING)        product = get_object_or_404(Product, product_id= product_id)
         serializer= self.serializer_class(product_id, many= False)
         return Response(serializer.data, status= status.HTTP_200_OK)
     
 
 #CUSTOMER CATEGORY
-class UsercategoryView(viewsets.ModelViewSet):  
+class UsercategoryViewSet(viewsets.ModelViewSet):  
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
 
@@ -241,6 +244,40 @@ class UsercategoryView(viewsets.ModelViewSet):
     def get(self, request, category_id):      #CUSTOMERS CAN GET SINGLE PRODUCT    #(API= WORKING)
         serializer = self.serializer_class(category_id, many= False)
         return Response(serializer.data, status= status.HTTP_200_OK)
+    
+
+# ORDER FOR CUSTOMERS
+class UserOrderViewSet(viewsets.ModelViewSet):       
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = OrderSerializer
+    queryset = Order.objects.all()
+
+    def create(self, request, *args, **kwargs):   #CUSTOMERS CAN ORDER PRODUCT   #(API= WORKING)
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                with transaction.atomic():
+                    order = serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+
+# FOR CUSTOMER TO POST REVIEW
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer()
+
+    def get_queryset(self):
+        return []
+    
+    def create(self, request, *args, **Kwargs):
+        serializer = self.serializer_class()
+        if serializer.is_valid():
+            with transaction.atomic():
+                serializer.save(user = request.user)
+                return Response(serializer.data, status= status.HTTP_200_OK)
+        return Response(serializer.error, status= status.HTTP_400_BAD_REQUEST)
+
 
 
 
@@ -256,24 +293,6 @@ class UserLogoutView(viewsets.ModelViewSet):
             return Response(status= status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-    
-
-# ORDER FOR CUSTOMERS
-class UserOrderViewSet(viewsets.ModelViewSet):       
-    permission_classes = [IsAuthenticated]
-
-    serializer_class = OrderSerializer
-    queryset = Order.objects.all()
-
-    def create(self, request, *args, **kwargs):
-            serializer = self.get_serializer(data=request.data)
-            if serializer.is_valid():
-                with transaction.atomic():
-                    order = serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 
@@ -312,10 +331,13 @@ class AddToCartView(viewsets.ModelViewSet):
             return Response({'messages': 'Successfully Added To Cart'}, status= status.HTTP_200_OK)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-    def get(self, request):
-        cart = self.get_queryset(user = request.user)
-        serializer = self.serializer_class(cart, many= True)
-        return Response(serializer.data, status= status.HTTP_200_OK)
+    # def get(self, request):
+    #     cart = self.get_queryset(user = request.user)
+    #     serializer = self.serializer_class(cart, many= True)
+    #     return Response(serializer.data, status= status.HTTP_200_OK)
+
+
+    
     
     
 

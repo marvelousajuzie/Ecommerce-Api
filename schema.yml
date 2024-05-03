@@ -3,6 +3,36 @@ info:
   title: ''
   version: 0.0.0
 paths:
+  /api/AddToCartView/:
+    get:
+      operationId: api_AddToCartView_retrieve
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: ''
+  /api/IsadminOrder/:
+    get:
+      operationId: api_IsadminOrder_retrieve
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
   /api/adminProductView/:
     get:
       operationId: api_adminProductView_list
@@ -434,9 +464,9 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/userCatView/:
+  /api/userCategoryView/:
     get:
-      operationId: api_userCatView_list
+      operationId: api_userCategoryView_list
       tags:
       - api
       security:
@@ -452,7 +482,7 @@ paths:
                   $ref: '#/components/schemas/Category'
           description: ''
     post:
-      operationId: api_userCatView_create
+      operationId: api_userCategoryView_create
       tags:
       - api
       requestBody:
@@ -477,9 +507,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Category'
           description: ''
-  /api/userCatView/{category_id}/:
+  /api/userCategoryView/{category_id}/:
     get:
-      operationId: api_userCatView_retrieve
+      operationId: api_userCategoryView_retrieve
       parameters:
       - in: path
         name: category_id
@@ -501,7 +531,7 @@ paths:
                 $ref: '#/components/schemas/Category'
           description: ''
     put:
-      operationId: api_userCatView_update
+      operationId: api_userCategoryView_update
       parameters:
       - in: path
         name: category_id
@@ -535,7 +565,7 @@ paths:
                 $ref: '#/components/schemas/Category'
           description: ''
     patch:
-      operationId: api_userCatView_partial_update
+      operationId: api_userCategoryView_partial_update
       parameters:
       - in: path
         name: category_id
@@ -568,7 +598,7 @@ paths:
                 $ref: '#/components/schemas/Category'
           description: ''
     delete:
-      operationId: api_userCatView_destroy
+      operationId: api_userCategoryView_destroy
       parameters:
       - in: path
         name: category_id
@@ -587,7 +617,56 @@ paths:
           description: No response body
   /api/userOrderView/:
     get:
+      operationId: api_userOrderView_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+          description: ''
+    post:
+      operationId: api_userOrderView_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/userOrderView/{order_id}/:
+    get:
       operationId: api_userOrderView_retrieve
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
       tags:
       - api
       security:
@@ -599,6 +678,88 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
           description: ''
+    put:
+      operationId: api_userOrderView_update
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    patch:
+      operationId: api_userOrderView_partial_update
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    delete:
+      operationId: api_userOrderView_destroy
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/userProductView/:
     get:
       operationId: api_userProductView_list
@@ -741,292 +902,6 @@ paths:
           type: string
           format: uuid
         description: A UUID string identifying this product.
-        required: true
-      tags:
-      - api
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '204':
-          description: No response body
-  /api/userlogin/:
-    get:
-      operationId: api_userlogin_list
-      tags:
-      - api
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsersLogin'
-          description: ''
-    post:
-      operationId: api_userlogin_create
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UsersLogin'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UsersLogin'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UsersLogin'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersLogin'
-          description: ''
-  /api/userlogin/{id}/:
-    get:
-      operationId: api_userlogin_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersLogin'
-          description: ''
-    put:
-      operationId: api_userlogin_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UsersLogin'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UsersLogin'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UsersLogin'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersLogin'
-          description: ''
-    patch:
-      operationId: api_userlogin_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedUsersLogin'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedUsersLogin'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedUsersLogin'
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersLogin'
-          description: ''
-    delete:
-      operationId: api_userlogin_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '204':
-          description: No response body
-  /api/userregister/:
-    get:
-      operationId: api_userregister_list
-      tags:
-      - api
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsersRegister'
-          description: ''
-    post:
-      operationId: api_userregister_create
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UsersRegister'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UsersRegister'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UsersRegister'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersRegister'
-          description: ''
-  /api/userregister/{id}/:
-    get:
-      operationId: api_userregister_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersRegister'
-          description: ''
-    put:
-      operationId: api_userregister_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UsersRegister'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UsersRegister'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UsersRegister'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersRegister'
-          description: ''
-    patch:
-      operationId: api_userregister_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedUsersRegister'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedUsersRegister'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedUsersRegister'
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersRegister'
-          description: ''
-    delete:
-      operationId: api_userregister_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
         required: true
       tags:
       - api
@@ -1208,6 +1083,34 @@ components:
       - password
       - password2
       - username
+    Cart:
+      type: object
+      properties:
+        cart_id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: integer
+        product:
+          type: array
+          items:
+            type: string
+            format: uuid
+        total_price:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        creation_date:
+          type: string
+          format: date
+          readOnly: true
+      required:
+      - cart_id
+      - creation_date
+      - product
+      - total_price
+      - user_id
     Category:
       type: object
       properties:
@@ -1231,10 +1134,18 @@ components:
           type: string
           format: uuid
           readOnly: true
+        user_id:
+          type: integer
+        products:
+          type: array
+          items:
+            type: string
+            format: uuid
         total_price:
           type: string
           format: decimal
           pattern: ^-?\d{0,17}(?:\.\d{0,3})?$
+          readOnly: true
         order_date:
           type: string
           format: date
@@ -1247,13 +1158,6 @@ components:
           maxLength: 150
         payment_method:
           $ref: '#/components/schemas/PaymentMethodEnum'
-        user_id:
-          type: integer
-        products:
-          type: array
-          items:
-            type: string
-            format: uuid
       required:
       - order_date
       - order_id
@@ -1294,6 +1198,37 @@ components:
           maxLength: 300
         description:
           type: string
+    PatchedOrder:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: integer
+        products:
+          type: array
+          items:
+            type: string
+            format: uuid
+        total_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,17}(?:\.\d{0,3})?$
+          readOnly: true
+        order_date:
+          type: string
+          format: date
+          readOnly: true
+        order_status:
+          type: string
+          maxLength: 50
+        shipping_address:
+          type: string
+          maxLength: 150
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
     PatchedProduct:
       type: object
       properties:
@@ -1326,32 +1261,6 @@ components:
         rating:
           type: string
           maxLength: 50
-    PatchedUsersLogin:
-      type: object
-      properties:
-        email:
-          type: string
-          maxLength: 200
-        password:
-          type: string
-          writeOnly: true
-    PatchedUsersRegister:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          title: Email Address
-          maxLength: 254
-        username:
-          type: string
-          maxLength: 200
-        password:
-          type: string
-          writeOnly: true
-        password2:
-          type: string
-          writeOnly: true
     PaymentMethodEnum:
       enum:
       - credit
@@ -1401,40 +1310,6 @@ components:
       - price
       - product_id
       - stock_quantity
-    UsersLogin:
-      type: object
-      properties:
-        email:
-          type: string
-          maxLength: 200
-        password:
-          type: string
-          writeOnly: true
-      required:
-      - email
-      - password
-    UsersRegister:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          title: Email Address
-          maxLength: 254
-        username:
-          type: string
-          maxLength: 200
-        password:
-          type: string
-          writeOnly: true
-        password2:
-          type: string
-          writeOnly: true
-      required:
-      - email
-      - password
-      - password2
-      - username
   securitySchemes:
     jwtAuth:
       type: http
