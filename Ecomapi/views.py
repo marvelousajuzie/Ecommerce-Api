@@ -1,18 +1,23 @@
 from django.shortcuts import render, get_object_or_404
 from .serializer import ProductSerializer, UsersRegisterSerializer,UsersLoginSerializer, OrderSerializer, PaymentSerializer, CategorySerializer, CustomUserSerializer, ReviewSerializer
-from .serializer import AdminCreateSerializer, CartSerializer
+from .serializer import AdminCreateSerializer, CartSerializer, PasswordResetSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
-from datetime import datetime
+from rest_framework.decorators import action
+from datetime import datetime, timedelta
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from rest_framework import permissions
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from Ecommerce import settings
 from .models import Product, Order, Payment, CustomUsers, Category, Review, Cart
 
-            
             
 
                           #SECTION FOR PRODUCTVIEW(IS ADMIN)
@@ -106,14 +111,14 @@ class AdminCreateViewSet(viewsets.ModelViewSet):
 
 # ORDER HISTORY FOR IsAdminUser
 class IsadminOrderViewSet(viewsets.ModelViewSet):
-    # permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser]
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
 
-    def get(self, request):         #IS ADMIN USER CAN  GET ALL ORDERS
+    def get(self, request):         #IS ADMIN USER CAN  GET ALL ORDERS    #(API= WORKING)
         order = self.get_queryset()
         serializer = self.serializer_class(order, many= True)
-        return Response(serializer.save)
+        return Response(serializer.data)
     
 
 
@@ -166,6 +171,9 @@ class IsadminOrderViewSet(viewsets.ModelViewSet):
 
 
                                #CUSTOMER  SECTION
+
+
+                     #AUTHENTICATION          
 # CUSTOMER REGISTRATION
 class UsersRegisterViewSet(viewsets.ModelViewSet):
     serializer_class = UsersRegisterSerializer
@@ -213,6 +221,63 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
     #     return refresh
 
 
+class PasswordResetRequestView(viewsets.ModelViewSet):
+
+    serializer_class =  PasswordResetSerializer
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data= request.data)
+        if serializer.is_valid(raise_exception= True):
+            email = serializer.validated_data['email']
+            user_qs = CustomUsers.objects.filter(email= email)
+            if user_qs.exists():
+                user = user_qs.first()
+                # Generate JWT token
+                token = AccessToken.for_user = user
+                 # Set token expiration time
+                token ['exp'] = datetime.utcnow() + timedelta(hours =1)
+                # Encode user ID for URL
+                uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+                token = str(token)
+                # Send email with password reset link
+                reset_link = f"{settings.FRONTEND_URL}/password-reset/{uidb64}/{token}/"
+                send_mail(
+                    'Password Reset',
+                    f'Click the following link to reset your password: {reset_link}',
+                    settings.EMAIL_HOST_USER,
+                    [email],
+                    fail_silently=False,
+                )
+                return Response({'message': 'Password reset email sent'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'User with this email does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+#CUSTOMER LOGOUT
+class UserLogoutView(viewsets.ModelViewSet):
+    def post(self, request):
+        try:
+            refresh_token = request.data['refresh']
+            token = RefreshToken[refresh_token]
+            token.blacklist()
+            return Response(status= status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+               # MANAGE PRODUCTS
 
  #FOR CUSTOMERS PRODUCTS VIEW
 class UserProductViewSet(viewsets.ModelViewSet):      
@@ -253,6 +318,7 @@ class UserOrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
 
+
     def create(self, request, *args, **kwargs):   #CUSTOMERS CAN ORDER PRODUCT   #(API= WORKING)
             serializer = self.get_serializer(data=request.data)
             if serializer.is_valid():
@@ -266,16 +332,21 @@ class UserOrderViewSet(viewsets.ModelViewSet):
 # FOR CUSTOMER TO POST REVIEW
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer()
+    queryset = Review.objects.all()
 
     def get_queryset(self):
         return []
     
-    def create(self, request, *args, **Kwargs):
-        serializer = self.serializer_class()
+    @action(detail= True, methods= ['post'])
+    def review_product(self, request):
+        # review = self.get_object()
+        # product_id = request.data.get('product_id')
+        # products = Product.objects.get(id = product_id)
+        # review.comment(products)
+        serializer = self.serializer(data= request.data)
         if serializer.is_valid():
-            with transaction.atomic():
-                serializer.save(user = request.user)
-                return Response(serializer.data, status= status.HTTP_200_OK)
+            serializer.save(user= request.user)
+            return Response(serializer.data, status= status.HTTP_200_OK)
         return Response(serializer.error, status= status.HTTP_400_BAD_REQUEST)
 
 
@@ -283,63 +354,71 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
     
-#CUSTOMER LOGOUT
-class UserLogoutView(viewsets.ModelViewSet):
-    def post(self, request):
-        try:
-            refresh_token = request.data['refresh']
-            token = RefreshToken[refresh_token]
-            token.blacklist()
-            return Response(status= status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
 #PAYMENT FOR CUSTOMERS
-# class PaymentViewSet(viewsets.ModelViewSet):
-#     # permission_classes = [IsAuthenticated]
+class PaymentViewSet(viewsets.ModelViewSet):
+    # permission_classes = [IsAuthenticated]
 
-#     serializer_class = PaymentSerializer
+    serializer_class = PaymentSerializer
 
-#     def create(self, request):
-#         serializer = self.serializer_class(data= request.data)
-#         if serializer.is_valid():
-#             user = request.user
-#             order_id = serializer.validated_data.get('order_id')
-#             order = Order.object.get(id = order_id)
+    def get_queryset(self):
+        return []
 
-#             payment = Payment.objects.create(
-#                 user_id = user,
-#                 order= order,
-#                 payment_amount = serializer.validated_data['payment_amount'],
-#                 payment_method = serializer.validated_data['payment_method']
-#             )
-#             return Response(payment, {'messages': 'Payment sucessfully'}, status= status.HTTP_202_ACCEPTED)
-#         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    
+    def create(self, request):
+        serializer = self.serializer_class(data= request.data)
+        serializer.is_valid(raise_exception= True)
+        self.perform_create(serializer)
+        payment_instance = serializer.instance
+        payment_instance.payment_status = 'completed'
+        payment_instance.save()
+
+        subject = 'Payment Confirmation'
+        message = render_to_string('payment_confirm_email.html', {'payment': payment_instance})
+        recipient = payment_instance.user_id.email
+        sender = 'Chizurummarvelous14@gmail.com'
+        send_mail(subject, message, sender, [recipient])
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=201, headers=headers)
+
 
 
 class AddToCartView(viewsets.ModelViewSet):
     serializer_class = CartSerializer
     query_set = Cart.objects.all()
 
-    def post(self, request):
-        serializer = self.serializer_class(data= request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'messages': 'Successfully Added To Cart'}, status= status.HTTP_200_OK)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        return []
     
-    # def get(self, request):
-    #     cart = self.get_queryset(user = request.user)
-    #     serializer = self.serializer_class(cart, many= True)
-    #     return Response(serializer.data, status= status.HTTP_200_OK)
+    @action(detail= True, methods= ['post'])
+    def add_product(self, request, pk= None):
+        cart = self.get_object()
+        product_id = request.data.get('product_id')
+        try:
+            products = Product.objects.get(id = product_id)
+            cart.product.add('products')
+            cart.total_price += products.price
+            cart.save()
+            return Response({'messages': 'Item Successfully Added To Cart'}, status= status.HTTP_200_OK)
+        except:
+            return Response({'messages': 'Item Not Found'}, status= status.HTTP_404_NOT_FOUND)
+    
 
-
-    
-    
-    
+    # @action(detail=True, methods=['post'])
+    # def remove_product(self, request):
+    #     cart = self.get_object()
+    #     product_id = request.data.get('product_id')
+    #     try:
+    #         product = Product.objects.get(id = product_id)
+    #         cart.product.remove('product')
+    #         cart.total_price -= product.price
+    #         cart.save()
+    #         return Response({'messages': 'Item Removed'}, status= status.HTTP_200_OK)
+    #     except:
+    #         return Response({'messages': 'Item Not Found'}, status= status.HTTP_404_NOT_FOUND)
+        
 
 
 

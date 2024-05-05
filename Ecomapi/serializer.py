@@ -62,10 +62,10 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 
 #REVIEW FOR IS ADMIN
-class ReviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Review
-        fields = ['review_id', 'user_id', 'product_id', 'rating', 'comment', 'review_date']
+# class ReviewSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Review
+#         fields = ['review_id', 'user_id', 'product_id', 'rating', 'comment', 'review_date']
 
 
 
@@ -126,6 +126,10 @@ class UsersLoginSerializer(serializers.Serializer):
         return {'user': user}
 
 
+class PasswordResetSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+
+
 
 class OrderSerializer(serializers.ModelSerializer):
 
@@ -159,11 +163,13 @@ class CategorySerializer(serializers.ModelSerializer):
 class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
-        fields = ['cart_id', 'user_id', 'product', 'total_price', 'creation_date']
-        # read_only_fields = ['total_price']
+        fields = '__all__'
 
-        def create(self, validated_data):
-            product_data = validated_data.pop('product', [])
-            total_price = sum(product.price for product in product_data)
-            cart = Cart.objects.create(**validated_data, total_price = total_price)
-            return cart
+        
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        field = '__all__'
+
+
+ 
