@@ -256,6 +256,32 @@ class PasswordResetRequestView(viewsets.ModelViewSet):
 
 
 
+class PasswordResetConfirmView(viewsets.ModelViewSet):
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            uidb64 = serializer.validated_data['uidb64']
+            token = serializer.validated_data['token']
+            try:
+                # Decode user ID from URL
+                uid = force_text(urlsafe_base64_decode(uidb64))
+                user = CustomUsers.objects.get(pk=uid)
+                # Decode token
+                token = AccessToken(token)
+                # Validate token
+                if token['user_id'] == str(user.pk) and not token.is_expired():
+                    # Set new password
+                    password = serializer.validated_data['password']
+                    user.set_password(password)
+                    user.save()
+                    return Response({'message': 'Password reset successful'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Invalid token or token expired'}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 #CUSTOMER LOGOUT
