@@ -15,12 +15,13 @@ from django.db import transaction
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from Ecommerce import settings
+from .view import initial_payment
 from .models import *
 from rest_framework_simplejwt.tokens import RefreshToken
 
             
 
-                          #SECTION FOR PRODUCTVIEW
+                          #SECTION FOR PRODUCTVIEW   # (API= WORKING)
  #For ISADMIN PRODUCTVIEW
 class AdminProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
@@ -28,7 +29,7 @@ class AdminProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
 
-    def create(self, request, *args, **Kwargs):   # (API= WORKING)
+    def post(self, request, *args, **Kwargs):   # (API= WORKING)
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
@@ -61,7 +62,7 @@ class UserProductViewSet(viewsets.ReadOnlyModelViewSet):
     
 
 
-                         # SECTION FOR CATEGORY 
+                         # SECTION FOR CATEGORY  # (API= WORKING)
 # CATEGORY FOR ISADMIN
 class AdminCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
@@ -105,7 +106,7 @@ class UsercategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 
-                 #SECTION FOR ORDER
+                 #SECTION FOR ORDER  # (API= WORKING)
 # ORDER FOR CUSTOMERS
 class OrderViewSet(ModelViewSet):       
     permission_classes = [IsAuthenticated]
@@ -122,7 +123,7 @@ class OrderViewSet(ModelViewSet):
             return Order.objects.all()
         else:
             return Order.objects.filter(user_id= user)
-    
+        
     def create(self, request):   #CUSTOMERS CAN ORDER PRODUCT   #(API= WORKING)
             serializer = self.get_serializer(data=request.data)
             if serializer.is_valid():
@@ -131,7 +132,17 @@ class OrderViewSet(ModelViewSet):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
+        
+#PAYMENT
+    # @action(detail= True, methods= ['POST'])
+    # def pay(self, request, pk):
+    #     order = self.get_object()
+    #     amount = order.total_price()
+    #     email = request.email
+    #     redirect_url = "http://127.0.0.1:9000/confirm/"
+    #     return initial_payment(amount, email, redirect_url)
+
+
 #ORDER HISTORY IS ADMIn
 class AdminOrderView(viewsets.ReadOnlyModelViewSet):
     serializer_class = OrderSerializer
@@ -139,6 +150,21 @@ class AdminOrderView(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Order.objects.all()
+    
+                     #AUTHENTICATION  SECTION        
+# CUSTOMER REGISTRATION
+class UsersRegisterViewSet(viewsets.ModelViewSet):
+    serializer_class = UsersRegisterSerializer
+    def get_queryset(self):
+        return []
+
+    def create(self, request, *args, **Kwargs):                                     #(API= WORKING)
+        serializer = self.serializer_class(data= request.data)
+        if serializer.is_valid(raise_exception= True):
+            serializer.save()
+            user = serializer.data
+            return Response({'data': user}, status= status.HTTP_201_CREATED)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 
     
@@ -214,23 +240,10 @@ class AdminCreateViewSet(viewsets.ModelViewSet):
 
 
 
-                               #CUSTOMER  SECTION
 
 
-                     #AUTHENTICATION          
-# CUSTOMER REGISTRATION
-class UsersRegisterViewSet(viewsets.ModelViewSet):
-    serializer_class = UsersRegisterSerializer
-    def get_queryset(self):
-        return []
 
-    def create(self, request, *args, **Kwargs):                                     #(API= WORKING)
-        serializer = self.serializer_class(data= request.data)
-        if serializer.is_valid(raise_exception= True):
-            serializer.save()
-            user = serializer.data
-            return Response({'data': user}, status= status.HTTP_201_CREATED)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+
     
 
 
@@ -255,14 +268,14 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
             }, status= status.HTTP_200_OK)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-    # def create_and_store(user):
-    #     refresh = RefreshToken.for_user(user)
-    #     RefreshToken.objects.create(
-    #         user= user,
-    #         refresh_token = str(refresh),
-    #         valid_until=datetime.fromtimestamp(refresh['exp']),
-    #     )
-    #     return refresh
+    def create_and_store(user):
+        refresh = RefreshToken.for_user(user)
+        RefreshToken.objects.create(
+            user= user,
+            refresh_token = str(refresh),
+            valid_until=datetime.fromtimestamp(refresh['exp']),
+        )
+        return refresh
 
 
 
@@ -299,40 +312,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
             serializer.save(user= request.user)
             return Response(serializer.data, status= status.HTTP_200_OK)
         return Response(serializer.error, status= status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-    
-
-
-
-
-#PAYMENT FOR CUSTOMERS
-class PaymentViewSet(viewsets.ModelViewSet):
-    # permission_classes = [IsAuthenticated]
-
-    serializer_class = PaymentSerializer
-
-    def get_queryset(self):
-        return []
-
-    def create(self, request):
-        serializer = self.serializer_class(data= request.data)
-        serializer.is_valid(raise_exception= True)
-        self.perform_create(serializer)
-        payment_instance = serializer.instance
-        payment_instance.payment_status = 'completed'
-        payment_instance.save()
-
-        subject = 'Payment Confirmation'
-        message = render_to_string('payment_confirm_email.html', {'payment': payment_instance})
-        recipient = payment_instance.user_id.email
-        sender = 'Chizurummarvelous14@gmail.com'
-        send_mail(subject, message, sender, [recipient])
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=201, headers=headers)
 
 
 

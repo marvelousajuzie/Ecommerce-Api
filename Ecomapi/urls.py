@@ -13,13 +13,13 @@ router.register(r'admincategory', AdminCategoryViewSet, basename='category') #AD
 router.register(r'userCategory', UsercategoryViewSet, basename= 'Category')                       
 router.register(r'UserOrder',OrderViewSet, basename= 'ORDER')
 router.register(r'adminorder',AdminOrderView, basename= 'AdminOrderView')
-
+router.register(r'userregister', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
 
 
 
 
                          #CUSTOMER REGISTRATION/LOGIN
-router.register(r'userregister', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
+
 router.register(r'userlogin', UsersLoginViewSet, basename= 'userlogin')   # USER LOGIN
 
 
@@ -29,7 +29,7 @@ router.register(r'admincreate',  AdminCreateViewSet, basename='admincreate')   #
 
 router.register(r'AddToCartView', AddToCartView, basename= 'AddToCartView')
 router.register(r'reviewView', ReviewViewSet, basename= 'reviewView')
-router.register(r'payment', PaymentViewSet, basename= 'payment')
+# router.register(r'payment', PaymentViewSet, basename= 'payment')
 # router.register(r'passwordResetView', PasswordResetRequestView, basename= 'passwordResetView')
 
 urlpatterns = [
