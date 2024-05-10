@@ -19,7 +19,7 @@ class CustomUsers(AbstractUser):
     username = models.CharField(max_length=200, verbose_name= _('Username'))
    
     is_staff = models.BooleanField('is_staff', False)
-    role = models.ForeignKey(Role, on_delete= models.CASCADE)             
+    role = models.ForeignKey(Role, on_delete= models.CASCADE, blank= True, null= True)             
 
     USERNAME_FIELD = 'email' 
     REQUIRED_FIELDS = ['username']
@@ -63,7 +63,7 @@ class Product(models.Model):
     category = models.CharField(max_length= 300, blank= True)
     images = models.ImageField(upload_to='images/')
     tags = models.CharField(max_length=250, blank=True)
-    rating = models.CharField(max_length=50, default= 'N/A')
+    rating = models.CharField(max_length=50, default= 'N/A', blank= True, null=True)
 
 def __str__(self):
     return self.name
@@ -73,40 +73,39 @@ class Order(models.Model):
     order_id = models.UUIDField(primary_key= True, default= uuid4, editable=False)
     user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product)
+    quantity = models.PositiveSmallIntegerField(default= 0)
     total_price = models.DecimalField(max_digits= 20, decimal_places=3)
     order_date = models.DateField(auto_now_add= True)
-    order_status= models.CharField(max_length=50, default= 'pending')
     shipping_address = models.CharField(max_length= 150)
-    paymethod = {
-        'credit': "Credit",
-        'card': 'Card',
-        'paypal': 'Paypal',
-    }
-
-    payment_method = models.CharField(max_length=100, choices= paymethod)
-
-    def __str__(self):
-        return f"{self.order_id}  {self.user_id.username}"
+    PAYMENT_STATUS_PENDING = 'pending'
+    PAYMENT_STATUS_COMPLETE = 'complete'
+    PAYMENT_STATUS_FAILED = '   failed'
+    PAYMENT_STATUS_CHOICES = [
+        (PAYMENT_STATUS_PENDING, 'pending'),
+        (PAYMENT_STATUS_COMPLETE, "complete"),
+        (PAYMENT_STATUS_FAILED, "failed"),
+    ]
+    payment_method = models.CharField(max_length=100, default= 'Debit/Credit Cards')
+    order_status= models.CharField(max_length=50, choices= PAYMENT_STATUS_CHOICES, default= 'pending')
     
+    
+    def __str__(self):
+        return self.order_status
 
+    
 
 class Payment(models.Model):
     Payment_id = models.UUIDField(primary_key= True, default=uuid4, editable=False)
     user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
     order_id = models.ForeignKey(Order, on_delete=models.CASCADE)
-    payment_amount = models.IntegerField()
+    payment_amount = models.DecimalField(max_digits= 20, decimal_places=3)
     payment_date = models.DateField(auto_now_add= True)
     payment_status = models.CharField(max_length= 50, default= 'pending')
-    paymethod = {
-        'credit': "Credit",
-        'card': 'Card',
-        'paypal': 'Paypal',
-    }
-    payment_method = models.CharField(max_length=200, choices= paymethod)
+    payment_method = models.CharField(max_length=100, default= 'Debit/Credit Cards')
     
     
     def __self__(self):
-        return self.Payment_id
+        return self.payment_status
 
 
 class Category(models.Model):
@@ -133,13 +132,19 @@ class Review(models.Model):
 
 class Cart(models.Model):
     cart_id = models.UUIDField(primary_key= True, default=uuid4, editable= False)
-    user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
-    product = models.ManyToManyField(Product)
-    total_price = models.IntegerField()
     creation_date = models.DateField(auto_now_add=True)
+
 
     def __str__(self):
         return f"{self.cart_id}"
+
+class Cartitems(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    product = models.ManyToManyField(Product)
+    quantity = models.PositiveSmallIntegerField(default= 0)
+    
+
+
 
 
 class Shipping(models.Model):

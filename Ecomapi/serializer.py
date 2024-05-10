@@ -2,14 +2,29 @@ from typing import Any
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
-from .models import CustomUsers, Role, Product, Order, Payment, Category, Cart, Review
-
+from .models import *
 
 #PRODUCT SERIALIZER
 class ProductSerializer(serializers.ModelSerializer):     
     class Meta:
         model = Product
         fields = ['product_id', 'name', 'description', 'price', 'stock_quantity', 'category', 'images', 'tags', 'rating']
+
+
+class SimpleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+
+
+class CartSerializer(serializers.ModelSerializer):
+    product = SimpleProductSerializer(many= False)
+    cart_id = serializers.UUIDField(read_only = True)
+    class Meta:
+        model = Cart
+        fields = ['cart_id']
+
 
 
 # IS ADMIN SERIALIZER
@@ -105,7 +120,8 @@ class UsersRegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
-class UsersLoginSerializer(serializers.Serializer):
+
+class UsersLoginSerializer(serializers.ModelSerializer):
     email = serializers.CharField(max_length =200)
     password = serializers.CharField(write_only = True)
 
@@ -123,8 +139,9 @@ class UsersLoginSerializer(serializers.Serializer):
                 raise serializers.ValidationError('Invalid Credidentials')
         else:
             raise serializers.ValidationError('Must Include Email and Password')
-        return {'user': user}
-
+        attrs['user'] = user
+        return attrs
+            #    return {'user': user}
 
 class PasswordResetSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
@@ -132,13 +149,19 @@ class PasswordResetSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Order
         fields = ['order_id', 'user_id', 'products', 'total_price', 'order_date', 'order_status', 'shipping_address', 'payment_method']
         read_only_fields = ['total_price']
 
 
+
+class OrderCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['order_id', 'user_id', 'products', 'total_price', 'order_date', 'order_status', 'shipping_address', 'payment_method']
+        read_only_fields = ['total_price']
+        
     def create(self, validated_data):
         products_data = validated_data.pop('products')
         total_price = sum(product.price for product in products_data)
@@ -146,6 +169,7 @@ class OrderSerializer(serializers.ModelSerializer):
         order.products.set(products_data)
         return order
     
+
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -160,10 +184,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cart
-        fields = '__all__'
+
 
         
 class ReviewSerializer(serializers.ModelSerializer):
