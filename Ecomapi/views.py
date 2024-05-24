@@ -21,10 +21,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
             
 
+
+
+        
                           #SECTION FOR PRODUCTVIEW   # (API= WORKING)
  #For ISADMIN PRODUCTVIEW
 class AdminProductViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAdminUser]
+    # permission_classes = [IsAdminUser]
 
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
@@ -67,7 +70,7 @@ class UserProductViewSet(viewsets.ReadOnlyModelViewSet):
 class AdminCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
 
-    serializer_class = CategorySerializer
+    serializer_class = CategorySerializer()
     queryset = Category.objects.all()
 
     def list(self, request, *args, **Kwargs): # (API= WORKING)
@@ -96,12 +99,12 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
         return Response({'Deleted Sucessfully'}, status= status.HTTP_200_OK)
 
 #CUSTOMER CATEGORY
-class UsercategoryViewSet(viewsets.ReadOnlyModelViewSet):  
+class UsercategoryViewSet(viewsets.ReadOnlyModelViewSet):  #not working
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
 
-    def get_queryset(self):   
-        return  Category.objects.all()
+    # def get_queryset(self):   
+    #     return  Category.objects.all()
 
 
 
@@ -166,6 +169,30 @@ class UsersRegisterViewSet(viewsets.ModelViewSet):
             return Response({'data': user}, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
+
+#CUSTOMER LOGIN
+class UsersLoginViewSet(viewsets.ModelViewSet):
+    serializer_class = UsersLoginSerializer
+
+    @extend_schema(responses= serializer_class)
+
+    def get_queryset(self):
+        return []
+
+    def create(self, request):                                 #(API= WORKING) 
+        serializer = self.serializer_class(data= request.data)
+        if serializer.is_valid():
+            user= serializer.validated_data['user']
+            refresh = RefreshToken.for_user(user)
+            RefreshTokens.objects.create(
+            user= user,
+            token = str(refresh))
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token), 
+                'messages': 'Logged In Successfully',
+            }, status= status.HTTP_200_OK)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
     
 
@@ -244,44 +271,14 @@ class AdminCreateViewSet(viewsets.ModelViewSet):
 
 
 
-    
 
-
-
-#CUSTOMER LOGIN
-class UsersLoginViewSet(viewsets.ModelViewSet):
-    serializer_class = UsersLoginSerializer
-
-    @extend_schema(responses= serializer_class)
-
-    def get_queryset(self):
-        return []
-
-    def create(self, request):                                 #(API= WORKING) 
-        serializer = self.serializer_class(data= request.data)
-        if serializer.is_valid():
-            user= serializer.validated_data['user']
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token), 'messages': 'Logged In Successfully',
-            }, status= status.HTTP_200_OK)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    
-    def create_and_store(user):
-        refresh = RefreshToken.for_user(user)
-        RefreshToken.objects.create(
-            user= user,
-            refresh_token = str(refresh),
-            valid_until=datetime.fromtimestamp(refresh['exp']),
-        )
-        return refresh
 
 
 
 
 #CUSTOMER LOGOUT
 class UserLogoutView(viewsets.ModelViewSet):
+    
     def post(self, request):
         try:
             refresh_token = request.data['refresh']
@@ -314,12 +311,22 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return Response(serializer.error, status= status.HTTP_400_BAD_REQUEST)
 
 
-
-class AddToCartView(viewsets.ModelViewSet):
-    def get_queryset(self):
-        return []
-    query_set = Cart.objects.all()
+   
+class CartView(viewsets.ModelViewSet):
+    queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
+class CartItemView(viewsets.ModelViewSet):
 
-
+    def get_queryset(self):
+        return Cartitems.objects.filter(cart_id = self.kwargs["cart_pk"])
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AddToCartSerializer
+        
+        return CartItemSerializer
+    
+    def get_serializer_context(self):
+        return {"cart_id": self.kwargs['cart_pk']}
+    

@@ -11,19 +11,54 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ['product_id', 'name', 'description', 'price', 'stock_quantity', 'category', 'images', 'tags', 'rating']
 
 
-class SimpleProductSerializer(serializers.ModelSerializer):
+class SmallProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = ['product_id', 'name', 'price']
 
 
 
+
+                #CART SECTION
 class CartSerializer(serializers.ModelSerializer):
-    product = SimpleProductSerializer(many= False)
-    cart_id = serializers.UUIDField(read_only = True)
     class Meta:
         model = Cart
         fields = ['cart_id']
+ 
+
+class CartItemSerializer(serializers.ModelSerializer):
+    product = SmallProductSerializer(many = False)
+    sub_total = serializers.SerializerMethodField(method_name="total")
+    class Meta:
+        model = Cartitems
+        fields = ['cart_id', 'cart', 'product', 'quantity',' sub_total']
+
+    def total(self, cartitem:Cartitems):
+        return cartitem.quantity * cartitem.product.price
+
+
+
+class AddToCartSerializer(serializers.ModelSerializer):
+    product_id = serializers.UUIDField()
+
+    def save(self, **kwargs):
+        cart_id = self.context['cart_id']
+        product_id = self.validated_data['product_id']
+        quantity = self.validated_data['quantity']
+
+        try:
+            cartitem = Cartitems.objects.get(cart_id = cart_id, product_id= product_id)
+            cartitem.quantity += quantity
+            cartitem.save()
+            self.instance = cartitem
+        except:
+
+            self.instance= Cartitems.objects.create(cart_id = cart_id, product_id= product_id, quantity= quantity)
+    class Meta:
+        model = Cartitems
+        fields = ['cart_id', 'product_id', 'quantity']
+
+
 
 
 
@@ -141,7 +176,6 @@ class UsersLoginSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Must Include Email and Password')
         attrs['user'] = user
         return attrs
-            #    return {'user': user}
 
 class PasswordResetSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
@@ -178,13 +212,11 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 
+
+
 class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
-
-
-
+    model = Category
+    fields = ['name', 'description']
 
         
 class ReviewSerializer(serializers.ModelSerializer):

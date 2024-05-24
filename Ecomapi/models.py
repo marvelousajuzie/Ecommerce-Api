@@ -19,7 +19,7 @@ class CustomUsers(AbstractUser):
     username = models.CharField(max_length=200, verbose_name= _('Username'))
    
     is_staff = models.BooleanField('is_staff', False)
-    role = models.ForeignKey(Role, on_delete= models.CASCADE, blank= True, null= True)             
+    role = models.ForeignKey(Role, on_delete= models.CASCADE)             
 
     USERNAME_FIELD = 'email' 
     REQUIRED_FIELDS = ['username']
@@ -40,11 +40,11 @@ class User(models.Model):
     }
     payment_method = models.CharField(max_length=200, choices= paymethod)
 
-class RefreshToken(models.Model):
+class RefreshTokens(models.Model):
     user = models.ForeignKey(CustomUsers, on_delete= models.CASCADE)
     token = models.CharField(max_length= 300, unique=True)
     created_at = models.DateTimeField(auto_now_add= True)
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField(auto_now_add= True)
 
     def is_valid(self):
         return self.expires_at > timezone.now()
@@ -139,9 +139,13 @@ class Cart(models.Model):
         return f"{self.cart_id}"
 
 class Cartitems(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
-    product = models.ManyToManyField(Product)
-    quantity = models.PositiveSmallIntegerField(default= 0)
+    cart = models.ForeignKey(Cart, related_name= 'Items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete= models.PROTECT)
+    quantity = models.PositiveSmallIntegerField(default=1)
+
+
+
+    
     
 
 
