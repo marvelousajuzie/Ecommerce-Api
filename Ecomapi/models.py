@@ -20,7 +20,6 @@ class CustomUsers(AbstractUser):
    
     is_staff = models.BooleanField('is_staff', False)
     role = models.ForeignKey(Role, on_delete= models.CASCADE, null= True)             
-
     USERNAME_FIELD = 'email' 
     REQUIRED_FIELDS = ['username']
 
