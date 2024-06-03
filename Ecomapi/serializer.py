@@ -11,6 +11,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ['product_id', 'name', 'description', 'price', 'stock_quantity', 'category', 'images', 'tags', 'rating']
 
 
+
 class SmallProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -31,7 +32,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     sub_total = serializers.SerializerMethodField(method_name="total")
     class Meta:
         model = Cartitems
-        fields = ['cart_id', 'cart', 'product', 'quantity',' sub_total']
+        fields = ['cart_id', 'cart', 'product', 'quantity', 'sub_total']
 
     def total(self, cartitem:Cartitems):
         return cartitem.quantity * cartitem.product.price
@@ -53,14 +54,55 @@ class AddToCartSerializer(serializers.ModelSerializer):
             self.instance = cartitem
         except:
 
-            self.instance= Cartitems.objects.create(cart_id = cart_id, product_id= product_id, quantity= quantity)
+            self.instance= Cartitems.objects.create(cart_id = cart_id,**self.validated_data )
+
+        return self.instance
+    
     class Meta:
         model = Cartitems
         fields = ['cart_id', 'product_id', 'quantity']
 
 
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = SmallProductSerializer(many=False)
 
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity']
 
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    total_price = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['order_id', 'user_id', 'total_price', 'order_date', 'shipping_address', 'payment_method', 'order_status', 'items']
+
+class CreateOrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity']
+
+class CreateOrderSerializer(serializers.ModelSerializer):
+    cart_id = serializers.UUIDField()
+
+    class Meta:
+        model = Order
+        fields = ['user_id', 'shipping_address', 'payment_method', 'cart_id']
+
+    def create(self, validated_data):
+        cart_id = validated_data.pop('cart_id')
+        cart = Cart.objects.get(cart_id=cart_id)
+        order = Order.objects.create(**validated_data)
+        
+        cart_items = Cartitems.objects.filter(cart=cart)
+        for cart_item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=cart_item.product,
+                quantity=cart_item.quantity
+            )
+        return order
 
 # IS ADMIN SERIALIZER
 class AdminCreateSerializer(serializers.ModelSerializer):
@@ -182,27 +224,6 @@ class PasswordResetSerializer(serializers.ModelSerializer):
 
 
 
-class OrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ['order_id', 'user_id', 'products', 'total_price', 'order_date', 'order_status', 'shipping_address', 'payment_method']
-        read_only_fields = ['total_price']
-
-
-
-class OrderCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ['order_id', 'user_id', 'products', 'total_price', 'order_date', 'order_status', 'shipping_address', 'payment_method']
-        read_only_fields = ['total_price']
-        
-    def create(self, validated_data):
-        products_data = validated_data.pop('products')
-        total_price = sum(product.price for product in products_data)
-        order = Order.objects.create(**validated_data, total_price=total_price)
-        order.products.set(products_data)
-        return order
-    
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -215,8 +236,9 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    model = Category
-    fields = ['name', 'description']
+    class   Meta:
+        model = Category
+        fields = '__all__'
 
         
 class ReviewSerializer(serializers.ModelSerializer):

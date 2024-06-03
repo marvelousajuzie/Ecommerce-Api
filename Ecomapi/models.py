@@ -19,7 +19,7 @@ class CustomUsers(AbstractUser):
     username = models.CharField(max_length=200, verbose_name= _('Username'))
    
     is_staff = models.BooleanField('is_staff', False)
-    role = models.ForeignKey(Role, on_delete= models.CASCADE)             
+    role = models.ForeignKey(Role, on_delete= models.CASCADE, null= True)             
 
     USERNAME_FIELD = 'email' 
     REQUIRED_FIELDS = ['username']
@@ -51,9 +51,6 @@ class RefreshTokens(models.Model):
 
 
 
-
-
-
 class Product(models.Model): 
     product_id = models.UUIDField(primary_key= True, default= uuid4, editable= False)
     name = models.CharField(max_length= 250)
@@ -72,10 +69,7 @@ def __str__(self):
 class Order(models.Model):
     order_id = models.UUIDField(primary_key= True, default= uuid4, editable=False)
     user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
-    products = models.ManyToManyField(Product)
-    quantity = models.PositiveSmallIntegerField(default= 0)
-    total_price = models.DecimalField(max_digits= 20, decimal_places=3)
-    order_date = models.DateField(auto_now_add= True)
+    order_date = models.DateTimeField(auto_now_add= True)
     shipping_address = models.CharField(max_length= 150)
     PAYMENT_STATUS_PENDING = 'pending'
     PAYMENT_STATUS_COMPLETE = 'complete'
@@ -90,8 +84,16 @@ class Order(models.Model):
     
     
     def __str__(self):
-        return self.order_status
+        return f"Order {self.order_id} - {self.order_status}"
 
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.quantity} of {self.product.name}"
     
 
 class Payment(models.Model):

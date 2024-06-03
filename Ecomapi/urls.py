@@ -1,29 +1,33 @@
 from django.urls import path, include
 from .views import *
 from rest_framework.routers import DefaultRouter
+from rest_framework_nested import routers
+from rest_framework_nested.routers import NestedDefaultRouter
 
 
 
 
 router = DefaultRouter()
 
+router.register(r'Register', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
+router.register(r'Login', UsersLoginViewSet, basename= 'userlogin')   # USER LOGIN
+router.register(r'Product', ProductViewSet, basename= 'product') 
+router.register(r'Category', CategoryViewSet, basename='category')    
+router.register(r'Basket', CartView, basename='cart')                   
+router.register(r'Order',OrderViewSet, basename= 'ORDER')
 
-router.register(r'adminProductView', AdminProductViewSet, basename= 'product') #ADMIN FOR PRODUCT
-router.register(r'ProductView', UserProductViewSet, basename= 'ProductView')  #USER PRODUCT VIEW 
-router.register(r'admincategory', AdminCategoryViewSet, basename='category') #ADMIN FOR CATEGORY
-router.register(r'userCategory', UsercategoryViewSet, basename= 'Category')                       
-router.register(r'UserOrder',OrderViewSet, basename= 'ORDER')
-router.register(r'adminorder',AdminOrderView, basename= 'AdminOrderView')
-router.register(r'userregister', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
-router.register(r'userlogin', UsersLoginViewSet, basename= 'userlogin')   # USER LOGIN
+
 router.register(r'userlogout', UserLogoutView, basename= 'userlogout')   # USER LOGOUT
 
 
-router.register(r'Basket', CartView, basename='CartView')
+ 
+# router.register(r'Order', OrderViewSet, basename='order')
+# router.register(r'Order/(?P<order_pk>[^/.]+)/items', OrderItemViewSet, basename='orderitem')
 
 
-cart_router = routers.NestedDefaultRouter(router, 'Basket', lookup = 'Basket')
-cart_router.register("items",CartItemView, base_name ='cart-items')
+
+cart_router = routers.NestedDefaultRouter(router, r'Basket', lookup = 'cart')
+cart_router.register(r"Items",CartItemView, basename ='cart-items')
 
 
 

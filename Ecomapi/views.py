@@ -17,6 +17,9 @@ from django.template.loader import render_to_string
 from Ecommerce import settings
 from .view import initial_payment
 from .models import *
+from .models import Category
+from rest_framework.exceptions import PermissionDenied
+from .serializer import CategorySerializer, ProductSerializer, CartSerializer,AddToCartSerializer, CartItemSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
             
@@ -25,13 +28,20 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
         
                           #SECTION FOR PRODUCTVIEW   # (API= WORKING)
- #For ISADMIN PRODUCTVIEW
-class AdminProductViewSet(viewsets.ModelViewSet):
-    # permission_classes = [IsAdminUser]
+
+class ProductViewSet(viewsets.ModelViewSet):
 
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
 
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    
     def post(self, request, *args, **Kwargs):   # (API= WORKING)
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
@@ -53,29 +63,27 @@ class AdminProductViewSet(viewsets.ModelViewSet):
         product = get_object_or_404( Product, product_id= product_id)
         product.delete()
         return Response({'message': 'Product Deleted Successfully'}, status= status.HTTP_200_OK)
-
-
-#FOR CUSTOMERS PRODUCTS VIEW
-class UserProductViewSet(viewsets.ReadOnlyModelViewSet):      
-    serializer_class = ProductSerializer
-    queryset = Product.objects.all()
-
-    def get_queryset(self):
-        return Product.objects.all()
     
 
 
                          # SECTION FOR CATEGORY  # (API= WORKING)
-# CATEGORY FOR ISADMIN
-class AdminCategoryViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAdminUser]
+class CategoryViewSet(viewsets.ModelViewSet):
 
-    serializer_class = CategorySerializer()
     queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
+    def get_permissions(self):
+        if self.action in ['list', 'retrive']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
+    
     def list(self, request, *args, **Kwargs): # (API= WORKING)
         category = self.get_queryset()
+        print(category)
         serializer = self.serializer_class(category, many= True)
+        print(type(serializer))
         return Response(serializer.data, status= status.HTTP_200_OK)
     
     def post(self, request, *args, **Kwargs): #(API= WORKING)
@@ -98,43 +106,54 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
         query_set.delete()
         return Response({'Deleted Sucessfully'}, status= status.HTTP_200_OK)
 
-#CUSTOMER CATEGORY
-class UsercategoryViewSet(viewsets.ReadOnlyModelViewSet):  #not working
-    serializer_class = CategorySerializer
-    queryset = Category.objects.all()
-
-    # def get_queryset(self):   
-    #     return  Category.objects.all()
 
 
+  # SECTTION FOR ADD TO CART
 
+class CartView(viewsets.ModelViewSet):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+
+class CartItemView(viewsets.ModelViewSet):
+
+    def get_queryset(self):
+        cart_id = self.kwargs.get('cart_pk')
+        if not cart_id:
+            raise KeyError('cart_id not found in kwargs')
+        return Cartitems.objects.filter(cart_id= cart_id)
+        
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AddToCartSerializer
+        
+        return CartItemSerializer
+    
+    def get_serializer_context(self):
+        return {"cart_id": self.kwargs['cart_pk']}
+
+    
 
                  #SECTION FOR ORDER  # (API= WORKING)
-# ORDER FOR CUSTOMERS
-class OrderViewSet(ModelViewSet):       
-    permission_classes = [IsAuthenticated]
+class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
-            return OrderCreateSerializer
-        else:
-            return OrderSerializer
-    def get_queryset(self):
+            return CreateOrderSerializer
+        return OrderSerializer
+
+    def get_serializer_context(self):
+        return {"user_id": self.request.user.id}
+
+    def perform_create(self, serializer):
         user = self.request.user
-        if user.is_staff:
-            return Order.objects.all()
+        if user.is_authenticated and isinstance(user, CustomUsers):
+            serializer.save(user_id=user)
         else:
-            return Order.objects.filter(user_id= user)
-        
-    def create(self, request):   #CUSTOMERS CAN ORDER PRODUCT   #(API= WORKING)
-            serializer = self.get_serializer(data=request.data)
-            if serializer.is_valid():
-                with transaction.atomic():
-                    order = serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            raise PermissionDenied("Cannot create an order without a valid user.")
+
+
         
 #PAYMENT
     # @action(detail= True, methods= ['POST'])
@@ -146,13 +165,7 @@ class OrderViewSet(ModelViewSet):
     #     return initial_payment(amount, email, redirect_url)
 
 
-#ORDER HISTORY IS ADMIn
-class AdminOrderView(viewsets.ReadOnlyModelViewSet):
-    serializer_class = OrderSerializer
-    queryset = Order.objects.all()
 
-    def get_queryset(self):
-        return Order.objects.all()
     
                      #AUTHENTICATION  SECTION        
 # CUSTOMER REGISTRATION
@@ -220,16 +233,7 @@ class AdminCreateViewSet(viewsets.ModelViewSet):
 
 
 
-#PAYMENT HISTORY FOR ISADMIN
-# class PaymentView(viewsets.ModelViewSet):
-#     serializer_class = PaymentSerializer
-#     queryset = Payment.objects.all
 
-#     def get(self, request):
-#         payment = self.get_queryset()
-#         serializer = self.serializer_class(payment, many= True)
-#         return Response(serializer.data, status= status.HTTP_200_OK)
-    
 
 
     
@@ -244,20 +248,6 @@ class AdminCreateViewSet(viewsets.ModelViewSet):
 #         serializer = self.serializer_class(Users, many= True)
 #         return Response(serializer.data, status= status.HTTP_200_OK)
 
-
-
-# # ISADMIN REVIEW
-# class ReviewView(viewsets.ModelViewSet):
-#     serializer_class = ReviewSerializer
-#     queryset = Review.objects.all()
-#     def get(self, request):
-#         review = self.get_queryset()
-#         serializer = self.serializer_class(review)
-#         return Response(serializer.data, status= status.HTTP_200_OK)
-    
-    
-    
-    
 
 
 
@@ -312,21 +302,4 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
    
-class CartView(viewsets.ModelViewSet):
-    queryset = Cart.objects.all()
-    serializer_class = CartSerializer
 
-class CartItemView(viewsets.ModelViewSet):
-
-    def get_queryset(self):
-        return Cartitems.objects.filter(cart_id = self.kwargs["cart_pk"])
-    
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return AddToCartSerializer
-        
-        return CartItemSerializer
-    
-    def get_serializer_context(self):
-        return {"cart_id": self.kwargs['cart_pk']}
-    
