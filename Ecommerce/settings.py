@@ -67,6 +67,10 @@ WSGI_APPLICATION = 'Ecommerce.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+
+
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -157,17 +161,3 @@ SPECTACULAR_SETTING = {
 SECURE_SSL_REDIRECT = False
 
 
-# EMAIL_BACKEND = 'django.core.mail.backends.stmp.EmailBackend'
-# EMAIL_HOST = 'smtp.yourmailserver.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'Chizurummarvelous14@gmail.com'
-# EMAIL_HOST_PASSWORD = ''
-
-
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# X_FRAME_OPTIONS = 'DENY'
-# SECURE_SSL_REDIRECT = True  # Redirect all non-HTTPS requests to HTTPS (if you are using HTTPS)
-# SESSION_COOKIE_SECURE = True  # To ensure cookies are only sent over HTTPS
-# CSRF_COOKIE_SECURE = True  # To ensure CSRF cookies are only sent over HTTPS

@@ -65,35 +65,52 @@ def __str__(self):
     return self.name
 
 
+class Cart(models.Model):
+    cart_id = models.UUIDField(primary_key= True, default=uuid4, editable= False)
+    creation_date = models.DateField(auto_now_add=True)
+    
+    class Meta:
+        abstract = False
+
+
+    def __str__(self):
+        return f"{self.cart_id}"
+
+class Cartitems(models.Model):
+    cart = models.ForeignKey(Cart, related_name= 'Items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete= models.PROTECT)
+    quantity = models.PositiveSmallIntegerField(default=1)
+    
+
+
+
 class Order(models.Model):
     order_id = models.UUIDField(primary_key= True, default= uuid4, editable=False)
-    user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(CustomUsers, on_delete= models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     order_date = models.DateTimeField(auto_now_add= True)
     shipping_address = models.CharField(max_length= 150)
-    PAYMENT_STATUS_PENDING = 'pending'
-    PAYMENT_STATUS_COMPLETE = 'complete'
-    PAYMENT_STATUS_FAILED = '   failed'
-    PAYMENT_STATUS_CHOICES = [
-        (PAYMENT_STATUS_PENDING, 'pending'),
-        (PAYMENT_STATUS_COMPLETE, "complete"),
-        (PAYMENT_STATUS_FAILED, "failed"),
-    ]
     payment_method = models.CharField(max_length=100, default= 'Debit/Credit Cards')
-    order_status= models.CharField(max_length=50, choices= PAYMENT_STATUS_CHOICES, default= 'pending')
-    
-    
+    order_status= models.CharField(max_length=50, default= 'pending')   
+     
     def __str__(self):
-        return f"Order {self.order_id} - {self.order_status}"
+        return self.order_status
+    
+    @property
+    def total_price(self):
+        items = self.items.all()
+        sub_total = sum(item.quantity * item.product.price for item in items)
+        return sub_total
 
 
+    
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
-
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    quantity = models.PositiveSmallIntegerField()
+   
     def __str__(self):
-        return f"{self.quantity} of {self.product.name}"
-    
+        return self.order
 
 class Payment(models.Model):
     Payment_id = models.UUIDField(primary_key= True, default=uuid4, editable=False)
@@ -131,22 +148,7 @@ class Review(models.Model):
         return f"{self.review_id}"
     
 
-class Cart(models.Model):
-    cart_id = models.UUIDField(primary_key= True, default=uuid4, editable= False)
-    creation_date = models.DateField(auto_now_add=True)
 
-
-    def __str__(self):
-        return f"{self.cart_id}"
-
-class Cartitems(models.Model):
-    cart = models.ForeignKey(Cart, related_name= 'Items', on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete= models.PROTECT)
-    quantity = models.PositiveSmallIntegerField(default=1)
-
-
-
-    
     
 
 
@@ -157,7 +159,7 @@ class Shipping(models.Model):
     user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
     order_id = models.ForeignKey(Order, on_delete=models.CASCADE)
     shipping_address = models.CharField(max_length= 2000)
-    shipping_method = models.CharField()
+    shipping_method = models.CharField(max_length= 50)
     estimated_delivery_date = models.DateField(auto_created= True)
 
 

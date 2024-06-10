@@ -12,9 +12,19 @@ router = DefaultRouter()
 router.register(r'Register', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
 router.register(r'Login', UsersLoginViewSet, basename= 'userlogin')   # USER LOGIN
 router.register(r'Product', ProductViewSet, basename= 'product') 
-router.register(r'Category', CategoryViewSet, basename='category')    
-router.register(r'Basket', CartView, basename='cart')                   
+router.register(r'Category', CategoryViewSet, basename='category')   
+
+
+router.register(r'Basket', CartView, basename='cart') 
+cart_router = routers.NestedDefaultRouter(router, r'Basket', lookup = 'cart')
+cart_router.register(r"Items",CartItemView, basename ='cart-items')
+
+
+
 router.register(r'Order',OrderViewSet, basename= 'ORDER')
+# order_router = routers.NestedDefaultRouter(router, r'Order', Lookup = 'ORDER')
+# order_router.register(r"Items", )
+
 
 
 router.register(r'userlogout', UserLogoutView, basename= 'userlogout')   # USER LOGOUT
@@ -26,8 +36,6 @@ router.register(r'userlogout', UserLogoutView, basename= 'userlogout')   # USER 
 
 
 
-cart_router = routers.NestedDefaultRouter(router, r'Basket', lookup = 'cart')
-cart_router.register(r"Items",CartItemView, basename ='cart-items')
 
 
 

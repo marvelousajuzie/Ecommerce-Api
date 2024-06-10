@@ -12,19 +12,59 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
+from .pagination import EcommercePagination
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from Ecommerce import settings
-from .view import initial_payment
 from .models import *
 from .models import Category
 from rest_framework.exceptions import PermissionDenied
 from .serializer import CategorySerializer, ProductSerializer, CartSerializer,AddToCartSerializer, CartItemSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from rest_framework  import request
             
 
 
+
+
+
+
+
+def initial_payment(amount, email, redirect_url):
+    url = "https://api.flutterwave.com/v3/payments"
+    headers = {
+        "Authorization": f"Bearer{settings.FLW_SEC_KEY}"
+    }
+
+    data = {
+        "tx_ref": str(uuid.uuid4()),
+        "amount": str(amount),
+        "currency": "NGN",
+        "redirect_url": redirect_url,
+        "meta": {
+            "consumers_id": 23,
+            "consumers_mac": "92a3-912ba-1192a"
+        },
+        "customer": {
+            "email": email,
+            "phonenumber": "080*****81",
+            "name": "Marvelous Ajuzie",
+        },
+        "customizations":
+        {
+            "title": "pied piper Payments",
+            "logo": "http://www.piedpiper.com/app/theme/joystick-v27/images/logo-png",
+        }
+    }
+
+    try:
+        response = request.post(url, headers= headers, json= data)
+        response_data = response.json()
+        return Response(response_data)
+    except requests.exceptions.RequestException as err:
+        print("The payment didint go through")
+        return Response({'error': str(err)}, status = 500)
+    
 
         
                           #SECTION FOR PRODUCTVIEW   # (API= WORKING)
@@ -40,7 +80,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
-
+    
+    def list(self, request, *args, **Kwargs):
+        product = self.get_queryset()
+        paginator = EcommercePagination()
+        page = paginator.paginate_queryset(product, request)
+        serializer = self.serializer_class(page, many= True)
+        return paginator.get_paginated_response(serializer.data)
     
     def post(self, request, *args, **Kwargs):   # (API= WORKING)
         serializer = self.serializer_class(data= request.data)
@@ -81,10 +127,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **Kwargs): # (API= WORKING)
         category = self.get_queryset()
-        print(category)
-        serializer = self.serializer_class(category, many= True)
-        print(type(serializer))
-        return Response(serializer.data, status= status.HTTP_200_OK)
+        paginator = EcommercePagination
+        page = paginator.paginate_queryset(category, request)
+        serializer = self.serializer_class(page, many= True)
+        return paginator.get_paginated_response(serializer.data)
     
     def post(self, request, *args, **Kwargs): #(API= WORKING)
         serializer = self.serializer_class(data= request.data)
@@ -115,6 +161,8 @@ class CartView(viewsets.ModelViewSet):
     serializer_class = CartSerializer
 
 class CartItemView(viewsets.ModelViewSet):
+    
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
         cart_id = self.kwargs.get('cart_pk')
@@ -127,6 +175,10 @@ class CartItemView(viewsets.ModelViewSet):
         if self.request.method == 'POST':
             return AddToCartSerializer
         
+        elif self.request.method == 'PATCH':
+            return UpdateCartSerializer
+        
+        
         return CartItemSerializer
     
     def get_serializer_context(self):
@@ -137,7 +189,6 @@ class CartItemView(viewsets.ModelViewSet):
                  #SECTION FOR ORDER  # (API= WORKING)
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
-
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -151,9 +202,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         if self.request.method == 'POST':
             return CreateOrderSerializer
         return OrderSerializer
-
-    def get_serializer_context(self):
-        return {"user_id": self.request.user.id}
+    
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -163,15 +212,18 @@ class OrderViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("Cannot create an order without a valid user.")
 
 
-        
-#PAYMENT
-    # @action(detail= True, methods= ['POST'])
-    # def pay(self, request, pk):
-    #     order = self.get_object()
-    #     amount = order.total_price()
-    #     email = request.email
-    #     redirect_url = "http://127.0.0.1:9000/confirm/"
-    #     return initial_payment(amount, email, redirect_url)
+    def get_serializer_context(self):
+        return {"user_id": self.request.user.id}
+    
+
+             #PAYMENT
+    @action(detail= True, methods= ['POST'])
+    def pay(self, request, pk):
+        order = self.get_object()
+        amount = order.total_price()
+        email = request.user.email
+        redirect_url = "http://127.0.0.1:9000/confirm/"
+        return initial_payment(amount, email, redirect_url)
 
 
 
@@ -277,6 +329,9 @@ class AdminCreateViewSet(viewsets.ModelViewSet):
 
 #CUSTOMER LOGOUT
 class UserLogoutView(viewsets.ModelViewSet):
+
+    def get_queryset(self):
+        return []
     
     def post(self, request):
         try:
@@ -308,7 +363,4 @@ class ReviewViewSet(viewsets.ModelViewSet):
             serializer.save(user= request.user)
             return Response(serializer.data, status= status.HTTP_200_OK)
         return Response(serializer.error, status= status.HTTP_400_BAD_REQUEST)
-
-
-   
 

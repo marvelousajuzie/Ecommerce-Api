@@ -32,11 +32,16 @@ class CartItemSerializer(serializers.ModelSerializer):
     sub_total = serializers.SerializerMethodField(method_name="total")
     class Meta:
         model = Cartitems
-        fields = ['cart_id', 'cart', 'product', 'quantity', 'sub_total']
+        fields = ['id', 'cart', 'product', 'quantity', 'sub_total']
 
     def total(self, cartitem:Cartitems):
         return cartitem.quantity * cartitem.product.price
 
+class UpdateCartSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only = True)
+    class Meta:
+        model = Cartitems
+        fields = ['id', 'quantity']
 
 
 class AddToCartSerializer(serializers.ModelSerializer):
@@ -64,44 +69,49 @@ class AddToCartSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = SmallProductSerializer(many=False)
-
     class Meta:
         model = OrderItem
         fields = ['product', 'quantity']
 
+        # def get_price(self, orderitem):
+        #     return self.product.price
+        
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
-    total_price = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True)
+    total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ['order_id', 'user_id', 'total_price', 'order_date', 'shipping_address', 'payment_method', 'order_status', 'items']
+        fields = ['order_id', 'cart','total_price', 'order_date', 'shipping_address', 'payment_method', 'order_status', 'items']
 
-class CreateOrderItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderItem
-        fields = ['product', 'quantity']
+    def get_total_price(self, order):
+        return sum(item.quantity * item.product.price for item in order.items.all())
 
+    
 class CreateOrderSerializer(serializers.ModelSerializer):
-    cart_id = serializers.UUIDField()
+    cart = serializers.UUIDField()
 
     class Meta:
         model = Order
-        fields = ['user_id', 'shipping_address', 'payment_method', 'cart_id']
+        fields = ['cart', 'shipping_address']
 
     def create(self, validated_data):
-        cart_id = validated_data.pop('cart_id')
-        cart = Cart.objects.get(cart_id=cart_id)
-        order = Order.objects.create(**validated_data)
-        
+        cart = validated_data.pop('cart')
+        user_id = validated_data.pop('user_id')
+        cart = Cart.objects.get(pk= cart)
+        order = Order.objects.create(user_id=user_id, cart=cart, **validated_data)
+
         cart_items = Cartitems.objects.filter(cart=cart)
+        order_items = []
         for cart_item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                product=cart_item.product,
-                quantity=cart_item.quantity
-            )
+                order_item = OrderItem(
+                    order=order,
+                    product=cart_item.product,
+                    quantity=cart_item.quantity,
+                    )
+        order_items.append(order_item)
+        
+        OrderItem.objects.bulk_create(order_items)
         return order
 
 # IS ADMIN SERIALIZER
@@ -153,11 +163,12 @@ class CustomUserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-#REVIEW FOR IS ADMIN
-# class ReviewSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Review
-#         fields = ['review_id', 'user_id', 'product_id', 'rating', 'comment', 'review_date']
+# REVIEW FOR IS ADMIN
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
 
 
 
