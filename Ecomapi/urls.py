@@ -11,8 +11,15 @@ router = DefaultRouter()
 
 router.register(r'Register', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
 router.register(r'Login', UsersLoginViewSet, basename= 'userlogin')   # USER LOGIN
-router.register(r'Product', ProductViewSet, basename= 'product') 
 router.register(r'Category', CategoryViewSet, basename='category')   
+router.register(r'shipping', ShippingViewSet, basename='shipping')   
+
+
+router.register(r'Product', ProductViewSet, basename= 'product') 
+product_router = routers.NestedDefaultRouter(router, r'Product', lookup = 'product')
+product_router.register(r"reviews",ReviewViewSet, basename ='reviews')
+
+
 
 
 router.register(r'Basket', CartView, basename='cart') 
@@ -26,13 +33,14 @@ router.register(r'Order',OrderViewSet, basename= 'ORDER')
 # order_router.register(r"Items", )
 
 
+router.register(r'passwordreset',PasswordResetView, basename= 'password')
 
 router.register(r'userlogout', UserLogoutView, basename= 'userlogout')   # USER LOGOUT
 
 
+
  
-# router.register(r'Order', OrderViewSet, basename='order')
-# router.register(r'Order/(?P<order_pk>[^/.]+)/items', OrderItemViewSet, basename='orderitem')
+
 
 
 
@@ -48,9 +56,7 @@ router.register(r'admincreate',  AdminCreateViewSet, basename='admincreate')   #
 
 
 
-# router.register(r'CartView', CartView, basename= 'CartView')
-# router.register(r'AddToCartView', CartItemView, basename= 'AddToCartView')
-router.register(r'reviewView', ReviewViewSet, basename= 'reviewView')
+# router.register(r'reviewView', ReviewViewSet, basename= 'reviewView')
 # router.register(r'payment', PaymentViewSet, basename= 'payment')
 # router.register(r'passwordResetView', PasswordResetRequestView, basename= 'passwordResetView')
 
@@ -58,8 +64,7 @@ urlpatterns = [
 
     path('', include(router.urls)),
     path('', include(cart_router.urls)),
-    # path('AddToCartView/',AddToCartView.as_view({'get': 'post'})),
-    # path('payment/', PaymentViewSet.as_view({'get': 'post'})),
+     path('', include(product_router.urls)),
     # path('reviewView/',ReviewViewSet.as_view({'get': 'create'})),
 ]
 

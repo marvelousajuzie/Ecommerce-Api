@@ -113,6 +113,14 @@ class CreateOrderSerializer(serializers.ModelSerializer):
         
         OrderItem.objects.bulk_create(order_items)
         return order
+    
+
+class ShippingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shipping
+        fields = '__all__'
+
+
 
 # IS ADMIN SERIALIZER
 class AdminCreateSerializer(serializers.ModelSerializer):
@@ -158,20 +166,19 @@ class RoleSerializer(serializers.ModelSerializer):
 
 #USERS FOR IS ADMIN
 class CustomUserSerializer(serializers.ModelSerializer):
-    class Meta:
+    class meta:
         model = CustomUsers
         fields = '__all__'
 
 
 # REVIEW FOR IS ADMIN
 
+
 class ReviewSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Review
         fields = '__all__'
-
-
-
 
 
 
@@ -252,10 +259,6 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
         
-class ReviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Review
-        field = '__all__'
 
 
  

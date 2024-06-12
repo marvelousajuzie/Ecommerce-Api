@@ -5,9 +5,10 @@ from rest_framework import viewsets
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from datetime import datetime, timedelta
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import status
@@ -270,8 +271,47 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
 
     
 
+class PasswordResetView(viewsets.ViewSet):
+    def get_queryset(self):
+        return []
+    
+    def create(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        user = CustomUsers.objects.filter(email=email).first()
+        if user:
+            context = {
+                'email': email,
+                'domain': request.META['HTTP_HOST'],
+                'site_name': 'YourSiteName',
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+                'protocol': 'https' if request.is_secure() else 'http',
+            }
+            subject = 'Password Reset Request'
+            message = render_to_string('password_reset/password_reset_email.html', context)
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+            return Response({'message': 'Password reset instructions have been sent to your email.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'User with this email does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
+# class PasswordResetConfirmView(viewsets.ModelViewSet):
+#     def post(self, request, *args, **kwargs):
+#         uidb64 = request.data.get('uidb64')
+#         token = request.data.get('token')
+#         password = request.data.get('password')
 
+#         try:
+#             uid = force_text(urlsafe_base64_decode(uidb64))
+#             user = User.objects.get(pk=uid)
+#         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+#             user = None
+
+#         if user and default_token_generator.check_token(user, token):
+#             user.set_password(password)
+#             user.save()
+#             return Response({'message': 'Your password has been reset successfully.'}, status=status.HTTP_200_OK)
+#         else:
+#             return Response({'error': 'Invalid password reset link.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -346,21 +386,24 @@ class UserLogoutView(viewsets.ModelViewSet):
  
 # FOR CUSTOMER TO POST REVIEW
 class ReviewViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializer()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
 
     def get_queryset(self):
-        return []
-    
-    @action(detail= True, methods= ['post'])
-    def review_product(self, request):
-        # review = self.get_object()
-        # product_id = request.data.get('product_id')
-        # products = Product.objects.get(id = product_id)
-        # review.comment(products)
-        serializer = self.serializer(data= request.data)
-        if serializer.is_valid():
-            serializer.save(user= request.user)
-            return Response(serializer.data, status= status.HTTP_200_OK)
-        return Response(serializer.error, status= status.HTTP_400_BAD_REQUEST)
+        product_id = self.kwargs.get('product_pk')
+        if not product_id:
+            raise KeyError('Product_id Not Found')
+        return Review.objects.filter(product_id= product_id)
+  
 
+class ShippingViewSet(viewsets.ModelViewSet):
+    serializer_class = ShippingSerializer
+    queryset = Shipping.objects.all()
+
+    def post(self, request):
+        serializer = self.serializer_class(data= request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializers.data, status= status.HTTP_200_OK)
+        return Response(serializers.error)

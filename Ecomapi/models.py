@@ -89,8 +89,6 @@ class Order(models.Model):
     user_id = models.ForeignKey(CustomUsers, on_delete= models.CASCADE)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     order_date = models.DateTimeField(auto_now_add= True)
-    shipping_address = models.CharField(max_length= 150)
-    payment_method = models.CharField(max_length=100, default= 'Debit/Credit Cards')
     order_status= models.CharField(max_length=50, default= 'pending')   
      
     def __str__(self):
@@ -138,7 +136,7 @@ class Category(models.Model):
 class Review(models.Model):
     review_id = models.UUIDField(primary_key= True, default=uuid4, editable=False)
     user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
-    product_id = models.ForeignKey(Product, on_delete= models.CASCADE)
+    product_id = models.ForeignKey(Product, on_delete= models.CASCADE, related_name= 'reviews')
     rating = models.IntegerField()
     comment = models.TextField()
     review_date = models.DateTimeField(auto_now_add= True)
@@ -149,19 +147,18 @@ class Review(models.Model):
     
 
 
-    
-
-
-
-
 class Shipping(models.Model):
     shipping_id = models.UUIDField(primary_key= True, default=uuid4, editable=False)
-    user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
     order_id = models.ForeignKey(Order, on_delete=models.CASCADE)
-    shipping_address = models.CharField(max_length= 2000)
+    shipping_address = models.TextField(max_length= 2000)
+    country = models.CharField(max_length=100, default= "Nigeria")
+    payment_method = models.CharField(max_length=100, default= 'Debit/Credit Cards')
     shipping_method = models.CharField(max_length= 50)
-    estimated_delivery_date = models.DateField(auto_created= True)
-
+    estimated_delivery_date = models.DateField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+        
 
     def __str__(self):
         return self.shipping_id
+
+

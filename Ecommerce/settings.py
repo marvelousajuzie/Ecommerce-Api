@@ -161,3 +161,12 @@ SPECTACULAR_SETTING = {
 SECURE_SSL_REDIRECT = False
 
 
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'Chizurummarvelous14@gmail.com'  # Replace with your Gmail email address
+EMAIL_HOST_PASSWORD = 'Marvelous@2024'  # Replace with your Gmail password or app password
+
