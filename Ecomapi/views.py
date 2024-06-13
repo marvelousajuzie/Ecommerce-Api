@@ -398,8 +398,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
   
 
 class ShippingViewSet(viewsets.ModelViewSet):
+    # permission_classes = [IsAuthenticated]
     serializer_class = ShippingSerializer
     queryset = Shipping.objects.all()
+
+
+    def get_queryset(self):
+        order_id = self.kwargs.get('order_pk')
+        return Shipping.objects.filter(order_id= order_id)
 
     def post(self, request):
         serializer = self.serializer_class(data= request.data)
@@ -407,3 +413,12 @@ class ShippingViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializers.data, status= status.HTTP_200_OK)
         return Response(serializers.error)
+    
+    def update(self, request, shipping_id):
+        query_set = get_object_or_404(Shipping, shipping_id= shipping_id)
+        serializers = self.serializer_class(query_set,data=request.data, partial= True)
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data,  status= status.HTTP_200_OK)
+        return Response(serializers.errors)
+        

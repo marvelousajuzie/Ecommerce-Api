@@ -12,7 +12,7 @@ router = DefaultRouter()
 router.register(r'Register', UsersRegisterViewSet,  basename= 'userrgister' )  # USER REGISTER
 router.register(r'Login', UsersLoginViewSet, basename= 'userlogin')   # USER LOGIN
 router.register(r'Category', CategoryViewSet, basename='category')   
-router.register(r'shipping', ShippingViewSet, basename='shipping')   
+# router.register(r'shipping', ShippingViewSet, basename='shipping')   
 
 
 router.register(r'Product', ProductViewSet, basename= 'product') 
@@ -28,9 +28,9 @@ cart_router.register(r"Items",CartItemView, basename ='cart-items')
 
 
 
-router.register(r'Order',OrderViewSet, basename= 'ORDER')
-# order_router = routers.NestedDefaultRouter(router, r'Order', Lookup = 'ORDER')
-# order_router.register(r"Items", )
+router.register(r'Order',OrderViewSet, basename= 'order')
+order_router = routers.NestedDefaultRouter(router, r'Order')
+order_router.register(r"shipping", ShippingViewSet, basename= 'shipping' )
 
 
 router.register(r'passwordreset',PasswordResetView, basename= 'password')
@@ -64,7 +64,8 @@ urlpatterns = [
 
     path('', include(router.urls)),
     path('', include(cart_router.urls)),
-     path('', include(product_router.urls)),
+    path('', include(product_router.urls)),
+    path('', include(order_router.urls)),
     # path('reviewView/',ReviewViewSet.as_view({'get': 'create'})),
 ]
 

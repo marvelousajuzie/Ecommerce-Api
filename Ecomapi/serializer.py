@@ -82,7 +82,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['order_id', 'cart','total_price', 'order_date', 'shipping_address', 'payment_method', 'order_status', 'items']
+        fields = ['order_id', 'cart','total_price', 'order_date','order_status', 'items']
 
     def get_total_price(self, order):
         return sum(item.quantity * item.product.price for item in order.items.all())
@@ -93,7 +93,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['cart', 'shipping_address']
+        fields = ['cart']
 
     def create(self, validated_data):
         cart = validated_data.pop('cart')

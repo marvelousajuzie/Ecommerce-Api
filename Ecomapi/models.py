@@ -85,7 +85,7 @@ class Cartitems(models.Model):
 
 
 class Order(models.Model):
-    order_id = models.UUIDField(primary_key= True, default= uuid4, editable=False)
+    order_id = models.UUIDField(primary_key= True, default= uuid4, editable=False, unique= True)
     user_id = models.ForeignKey(CustomUsers, on_delete= models.CASCADE)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     order_date = models.DateTimeField(auto_now_add= True)
@@ -149,7 +149,7 @@ class Review(models.Model):
 
 class Shipping(models.Model):
     shipping_id = models.UUIDField(primary_key= True, default=uuid4, editable=False)
-    order_id = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order_id = models.OneToOneField(Order, on_delete=models.CASCADE, related_name= 'shipping')
     shipping_address = models.TextField(max_length= 2000)
     country = models.CharField(max_length=100, default= "Nigeria")
     payment_method = models.CharField(max_length=100, default= 'Debit/Credit Cards')
