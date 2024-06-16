@@ -1,3 +1,5 @@
+import uuid
+import requests
 from django.shortcuts import render, get_object_or_404
 from .serializer import *
 from drf_spectacular.utils import extend_schema
@@ -19,53 +21,16 @@ from django.template.loader import render_to_string
 from Ecommerce import settings
 from .models import *
 from .models import Category
+from .view import *
+from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from .serializer import CategorySerializer, ProductSerializer, CartSerializer,AddToCartSerializer, CartItemSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework  import request
+
             
 
 
 
-
-
-
-
-def initial_payment(amount, email, redirect_url):
-    url = "https://api.flutterwave.com/v3/payments"
-    headers = {
-        "Authorization": f"Bearer{settings.FLW_SEC_KEY}"
-    }
-
-    data = {
-        "tx_ref": str(uuid.uuid4()),
-        "amount": str(amount),
-        "currency": "NGN",
-        "redirect_url": redirect_url,
-        "meta": {
-            "consumers_id": 23,
-            "consumers_mac": "92a3-912ba-1192a"
-        },
-        "customer": {
-            "email": email,
-            "phonenumber": "080*****81",
-            "name": "Marvelous Ajuzie",
-        },
-        "customizations":
-        {
-            "title": "pied piper Payments",
-            "logo": "http://www.piedpiper.com/app/theme/joystick-v27/images/logo-png",
-        }
-    }
-
-    try:
-        response = request.post(url, headers= headers, json= data)
-        response_data = response.json()
-        return Response(response_data)
-    except requests.exceptions.RequestException as err:
-        print("The payment didint go through")
-        return Response({'error': str(err)}, status = 500)
-    
 
         
                           #SECTION FOR PRODUCTVIEW   # (API= WORKING)
@@ -190,13 +155,20 @@ class CartItemView(viewsets.ModelViewSet):
                  #SECTION FOR ORDER  # (API= WORKING)
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
+    permission_classes = [IsAuthenticated]
 
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            permission_classes = [IsAdminUser]
+    # def get_permissions(self):
+    #     if self.action in ['list', 'retrieve']:
+    #         permission_classes = [IsAdminUser]
+    #     else:
+    #         return Order.objects.filter(user=self.request.user)
+    #     return [permission() for permission in permission_classes]
+    
+    def get_queryset(self):
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            Order.objects.all()
         else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+            return Order.objects.filter(user_id =self.request.user)
 
 
     def get_serializer_class(self):
@@ -219,13 +191,35 @@ class OrderViewSet(viewsets.ModelViewSet):
 
              #PAYMENT
     @action(detail= True, methods= ['POST'])
-    def pay(self, request, pk):
-        order = self.get_object()
-        amount = order.total_price()
-        email = request.user.email
-        redirect_url = "http://127.0.0.1:9000/confirm/"
-        return initial_payment(amount, email, redirect_url)
+    def payment(self, request, pk):
+        Order = self.get_object()
+        try:
+            amount = Order.total_price
+            email = request.user.email
+            order_id = uuid4(Order.order_id)
+            # redirect_url = "http://127.0.0.1:9000/api/Order/Confirm_pay/?id" + Order_id,
+            return initial_payment(amount, email, order_id)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    @action(detail= False, methods= ['POST'])
+    def confirm_pay(self,request):
+        order_id = request.GET.get("o_id")
+        # try:
+        #     uuid.UUID(order_id)
+        # except ValueError:
+        #     return Response({"error": f"'{order_id}' is not a valid UUID."},
+        #                     status=status.HTTP_400_BAD_REQUEST)
+        order = Order.objects.get(order_id=order_id)
+        order.order_status = "confirmed"
+        order.save()
+        serializer = OrderSerializer(order)
 
+        data = {
+            "msg": "Payment was Sucessful",
+            "data" : serializer.data
+        }
+        return Response(data)
 
 
     
@@ -270,6 +264,24 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
     
+#CUSTOMER LOGOUT
+class LogoutViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = LogoutSerializer
+
+    def get_queryset(self):
+        return []
+    
+    def create(self, request):
+        try:
+            refresh_token = request.data.get('refresh')
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status= status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)      
+
+
 
 class PasswordResetView(viewsets.ViewSet):
     def get_queryset(self):
@@ -288,11 +300,12 @@ class PasswordResetView(viewsets.ViewSet):
                 'protocol': 'https' if request.is_secure() else 'http',
             }
             subject = 'Password Reset Request'
-            message = render_to_string('password_reset/password_reset_email.html', context)
+            message = render_to_string('password_reset_email.html', context)
             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
             return Response({'message': 'Password reset instructions have been sent to your email.'}, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'User with this email does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'email does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 # class PasswordResetConfirmView(viewsets.ModelViewSet):
 #     def post(self, request, *args, **kwargs):
@@ -319,22 +332,6 @@ class PasswordResetView(viewsets.ViewSet):
 
 
 
-        #SECTION FOR CREATING ROLE
-#IS ADMIN CREATE VIEW   
-class AdminCreateViewSet(viewsets.ModelViewSet):
-    queryset = CustomUsers.objects.all()
-    serializer_class = AdminCreateSerializer
-
-    def get_permissions(self):            #(API= WORKING)
-        if self.action in ['create']:
-            permission_classes = [permissions.IsAdminUser]
-        else:
-            permission_classes = [permissions.IsAuthenticated]
-        return [permission() for permission in permission_classes]
-
-
-
-
 
 
     
@@ -349,38 +346,6 @@ class AdminCreateViewSet(viewsets.ModelViewSet):
 #         serializer = self.serializer_class(Users, many= True)
 #         return Response(serializer.data, status= status.HTTP_200_OK)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#CUSTOMER LOGOUT
-class UserLogoutView(viewsets.ModelViewSet):
-
-    def get_queryset(self):
-        return []
-    
-    def post(self, request):
-        try:
-            refresh_token = request.data['refresh']
-            token = RefreshToken[refresh_token]
-            token.blacklist()
-            return Response(status= status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)      
 
 
  
@@ -398,6 +363,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
   
 
 class ShippingViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post', 'patch']
+
     # permission_classes = [IsAuthenticated]
     serializer_class = ShippingSerializer
     queryset = Shipping.objects.all()
@@ -405,6 +372,8 @@ class ShippingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         order_id = self.kwargs.get('order_pk')
+        if not order_id:
+            raise KeyError('order_id Not Found')
         return Shipping.objects.filter(order_id= order_id)
 
     def post(self, request):
@@ -422,3 +391,21 @@ class ShippingViewSet(viewsets.ModelViewSet):
             return Response(serializers.data,  status= status.HTTP_200_OK)
         return Response(serializers.errors)
         
+
+
+#         #SECTION FOR CREATING ROLE
+
+class RoleViewSet(viewsets.ModelViewSet):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer
+
+    def get_queryset(self):
+        return Role.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+

@@ -1,17 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from decimal import Decimal
+from django.contrib.auth import get_user_model
 from uuid import uuid4
 
 
 
-class Role(models.Model):
-    name = models.CharField(max_length= 300)
-    permission = models.JSONField(default= list)
 
-    def __str__(self):
-        return self.name
 
 
 class CustomUsers(AbstractUser):                                     
@@ -19,14 +17,14 @@ class CustomUsers(AbstractUser):
     username = models.CharField(max_length=200, verbose_name= _('Username'))
    
     is_staff = models.BooleanField('is_staff', False)
-    role = models.ForeignKey(Role, on_delete= models.CASCADE, null= True)             
+              
     USERNAME_FIELD = 'email' 
     REQUIRED_FIELDS = ['username']
 
 
     def __str__(self):
         return self.email
-    
+
 
 class User(models.Model):
     user = models.OneToOneField(CustomUsers, on_delete= models.PROTECT, primary_key= True)
@@ -39,6 +37,16 @@ class User(models.Model):
     }
     payment_method = models.CharField(max_length=200, choices= paymethod)
 
+
+
+class Role(models.Model):
+    name = models.CharField(max_length= 300)
+    permission = models.JSONField(default= list)
+  
+    def __str__(self):
+        return self.name
+    
+    
 class RefreshTokens(models.Model):
     user = models.ForeignKey(CustomUsers, on_delete= models.CASCADE)
     token = models.CharField(max_length= 300, unique=True)
@@ -88,6 +96,7 @@ class Order(models.Model):
     order_id = models.UUIDField(primary_key= True, default= uuid4, editable=False, unique= True)
     user_id = models.ForeignKey(CustomUsers, on_delete= models.CASCADE)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default= Decimal('0.00'))
     order_date = models.DateTimeField(auto_now_add= True)
     order_status= models.CharField(max_length=50, default= 'pending')   
      

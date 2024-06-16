@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'Ecomapi',
 ]
 
@@ -49,7 +50,7 @@ ROOT_URLCONF = 'Ecommerce.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['Ecomapi/templates'],
+        'DIRS': [os.path.join(BASE_DIR,'Ecomapi/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -151,6 +152,8 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    
+    'BLACKLIST_AFTER_ROTATION': True,
+
 }
 
 SPECTACULAR_SETTING = {
@@ -169,5 +172,12 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'Chizurummarvelous14@gmail.com'  # Replace with your Gmail email address
-EMAIL_HOST_PASSWORD = 'Marvelous@2024'  # Replace with your Gmail password or app password
+EMAIL_HOST_PASSWORD = 'Marvelous@2000'  # Replace with your Gmail password or app password
 
+
+
+FLW_SEC_KEY = "FLWSECK_TEST-39917726e5d83b479b6a4bbf5bbfb6ae-X"
+
+# FLW_SEC_KEY = "39917726e5d83b479b6a4bbf5bbfb6ae-X"
+
+DEFAULT_FROM_EMAIL = 'Chizurummarvelous14@gmail.com'

@@ -4,6 +4,10 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from .models import *
 
+
+
+
+
 #PRODUCT SERIALIZER
 class ProductSerializer(serializers.ModelSerializer):     
     class Meta:
@@ -16,6 +20,67 @@ class SmallProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['product_id', 'name', 'price']
+
+
+
+                       #AUTHENTICATION SECTION
+                       
+# CUSTOMER REGISTER SERIALIZER
+class UsersRegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only = True)
+    password2 = serializers.CharField(write_only = True)
+
+    class Meta:
+        model = CustomUsers
+        fields = ['email', 'username', 'password', 'password2']
+
+    def validate_email(self, value):
+        if CustomUsers.objects.filter(email= value).exists():
+            raise serializers.ValidationError('Email Already In Use')
+        return value
+    
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError('Password Do Not Match')
+        return data
+    
+
+    def create(self, validated_data):
+        validated_data.pop('password2')
+        user = CustomUsers.objects.create_user(
+            email = validated_data['email'],
+            username = validated_data['username'],
+            password = validated_data.get('password'),
+            
+        )
+        return user
+
+ 
+              # LOGIN SERIALIZER
+class UsersLoginSerializer(serializers.ModelSerializer):
+    email = serializers.CharField(max_length =200)
+    password = serializers.CharField(write_only = True)
+
+    class Meta:
+        model = CustomUsers
+        fields = ['email', 'password']
+            
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        if email and password:
+            user = authenticate(email= email, password= password)
+            if not user:
+                raise serializers.ValidationError('Invalid Credidentials')
+        else:
+            raise serializers.ValidationError('Must Include Email and Password')
+        attrs['user'] = user
+        return attrs
+    
+class LogoutSerializer(serializers.Serializer):
+    pass
+
 
 
 
@@ -68,6 +133,8 @@ class AddToCartSerializer(serializers.ModelSerializer):
         fields = ['cart_id', 'product_id', 'quantity']
 
 
+
+       # ORDER SECTION SERIALIZER
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
@@ -78,11 +145,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
         
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
-    total_price = serializers.SerializerMethodField()
+    # total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ['order_id', 'cart','total_price', 'order_date','order_status', 'items']
+        fields = ['order_id', 'cart', 'user_id', 'total_price','order_status', 'items']
 
     def get_total_price(self, order):
         return sum(item.quantity * item.product.price for item in order.items.all())
@@ -93,15 +160,15 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['cart']
+        fields = [ 'cart', 'user_id']
 
     def create(self, validated_data):
-        cart = validated_data.pop('cart')
+        cart_id = validated_data.pop('cart')
         user_id = validated_data.pop('user_id')
-        cart = Cart.objects.get(pk= cart)
-        order = Order.objects.create(user_id=user_id, cart=cart, **validated_data)
+        cart = Cart.objects.get(pk= cart_id)
+        order = Order.objects.create(user_id=user_id, cart =cart, **validated_data)
 
-        cart_items = Cartitems.objects.filter(cart=cart)
+        cart_items = Cartitems.objects.filter(cart_id=cart_id)
         order_items = []
         for cart_item in cart_items:
                 order_item = OrderItem(
@@ -115,6 +182,8 @@ class CreateOrderSerializer(serializers.ModelSerializer):
         return order
     
 
+
+    # Shipping SECTION
 class ShippingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shipping
@@ -122,47 +191,28 @@ class ShippingSerializer(serializers.ModelSerializer):
 
 
 
-# IS ADMIN SERIALIZER
-class AdminCreateSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only = True)
-    password2 = serializers.CharField(write_only = True)
 
-    role = serializers.SlugRelatedField(
-        slug_field= 'name',
-        queryset = Role.objects.all(),
-        required = False,
-        allow_null = True,
-        error_messages = {'messages':'Role Does Not EXist'}
-    )     
-    class Meta:
-        model = CustomUsers
-        fields = ['email', 'username', 'password', 'password2', 'role']
-
-        def validate_email(self, value):
-            if CustomUsers.objects.filter(email= value).exists():
-                raise serializers.ValidationError('Email Already In Use')
-            return value
-    
-    def validate(self, data):
-        if data['password'] != data['password2']:
-            raise serializers.ValidationError('Password Do Not Match')
-        return data
-    
-    def create(self, validated_data):
-        validated_data.pop('password2')
-        user = CustomUsers.objects.create_user(
-            email = validated_data['email'],
-            username = validated_data['username'],
-            password = validated_data.get('password'),
-            role = validated_data.get('role'),
-            
-        )
-        return user
 
 class RoleSerializer(serializers.ModelSerializer):
     class meta:
         model = Role
-        fields = '__all__'
+        fields = ['id', 'name', 'permission']
+
+
+    def create(self, validated_data):
+        permissions_data = validated_data.pop('permissions', [])
+        role = Role.objects.create(**validated_data)
+        role.permissions = permissions_data
+        role.save()
+        return role
+    
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.permissions = validated_data.get('permissions', instance.permissions)
+        instance.save()
+        return instance
+
 
 #USERS FOR IS ADMIN
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -183,59 +233,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 
-
-
-# CUSTOMER REGISTER SERIALIZER
-class UsersRegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only = True)
-    password2 = serializers.CharField(write_only = True)
-
-    class Meta:
-        model = CustomUsers
-        fields = ['email', 'username', 'password', 'password2']
-
-    def validate_email(self, value):
-        if CustomUsers.objects.filter(email= value).exists():
-            raise serializers.ValidationError('Email Already In Use')
-        return value
-    
-    def validate(self, data):
-        if data['password'] != data['password2']:
-            raise serializers.ValidationError('Password Do Not Match')
-        return data
-    
-
-    def create(self, validated_data):
-        validated_data.pop('password2')
-        user = CustomUsers.objects.create_user(
-            email = validated_data['email'],
-            username = validated_data['username'],
-            password = validated_data.get('password'),
-            
-        )
-        return user
-
-
-class UsersLoginSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(max_length =200)
-    password = serializers.CharField(write_only = True)
-
-    class Meta:
-        model = CustomUsers
-        fields = ['email', 'password']
-            
-    def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
-
-        if email and password:
-            user = authenticate(email= email, password= password)
-            if not user:
-                raise serializers.ValidationError('Invalid Credidentials')
-        else:
-            raise serializers.ValidationError('Must Include Email and Password')
-        attrs['user'] = user
-        return attrs
 
 class PasswordResetSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()

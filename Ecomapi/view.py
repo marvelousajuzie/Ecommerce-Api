@@ -1,9 +1,13 @@
-from rest_framework import response
+import uuid
+import requests
+from .models import Order
+from Ecommerce import settings
+from rest_framework.response import Response
 
 
 
 
-def initial_payment(amount, email, redirect_url):
+def initial_payment(amount, email, order_id):
     url = "https://api.flutterwave.com/v3/payments"
     headers = {
         "Authorization": f"Bearer{settings.FLW_SEC_KEY}"
@@ -13,7 +17,7 @@ def initial_payment(amount, email, redirect_url):
         "tx_ref": str(uuid.uuid4()),
         "amount": str(amount),
         "currency": "NGN",
-        "redirect_url": redirect_url,
+        "redirect_url": "http://127.0.0.1:9000/api/Order/confirm_pay/f'?o_id={order_id}",
         "meta": {
             "consumers_id": 23,
             "consumers_mac": "92a3-912ba-1192a"
@@ -31,11 +35,11 @@ def initial_payment(amount, email, redirect_url):
     }
 
     try:
-        response = request.post(url, headers= headers, json= data)
+        response = requests.post(url, headers= headers, json= data)
         response_data = response.json()
         return Response(response_data)
     except requests.exceptions.RequestException as err:
-        print("The payment didint go through")
+        print("Payment Failed")
         return Response({'error': str(err)}, status = 500)
     
 
@@ -51,26 +55,3 @@ def initial_payment(amount, email, redirect_url):
 
 
 
-
-class PasswordResetRequestView(PasswordResetView):
-    def post(self, request, *args, **kwargs):
-        email = request.data.get('email')
-        user = User.objects.filter(email=email).first()
-        if user:
-            context = {
-                'email': email,
-                'domain': request.META['HTTP_HOST'],
-                'site_name': 'YourSiteName',
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user),
-                'protocol': 'https' if request.is_secure() else 'http',
-            }
-            subject = 'Password Reset Request'
-            message = render_to_string('password_reset/password_reset_email.html', context)
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
-        return JsonResponse({'message': 'Password reset email sent'})
-
-class PasswordResetConfirmView(PasswordResetConfirmView):
-    def post(self, request, uidb64=None, token=None, *arg, **kwargs):
-        # Your custom logic for resetting password
-        return redirect('login')  # Redirect to login page after password reset
