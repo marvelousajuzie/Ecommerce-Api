@@ -32,13 +32,15 @@ order_router.register(r"shipping", ShippingViewSet, basename= 'shipping' )
 
 
 router.register(r'Category', CategoryViewSet, basename='category')   
-# router.register(r'shipping', ShippingViewSet, basename='shipping')   
+
+
+router.register(r'Role', RoleViewSet, basename='role')  
 
 
 
 
 
-
+router.register(r'AllUsers', AllUsersView, basename='allusers')  
 
 
 

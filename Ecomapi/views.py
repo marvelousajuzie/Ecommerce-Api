@@ -54,7 +54,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(page, many= True)
         return paginator.get_paginated_response(serializer.data)
     
-    def post(self, request, *args, **Kwargs):   # (API= WORKING)
+    def post(self, request, *args, **Kwargs):   
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
@@ -62,7 +62,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-    def patch(self, request, product_id):  #(API= WORKING)
+    def patch(self, request, product_id):  
         query_set = get_object_or_404(Product, product_id= product_id)
         serializer = self.serializer_class(query_set, data=request.data, partial= True)
         if serializer.is_valid(raise_exception= True):
@@ -71,7 +71,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
 
-    def delete(self, request, product_id, *args, **Kwargs):   #(API= WORKING)
+    def delete(self, request, product_id, *args, **Kwargs):  
         product = get_object_or_404( Product, product_id= product_id)
         product.delete()
         return Response({'message': 'Product Deleted Successfully'}, status= status.HTTP_200_OK)
@@ -83,6 +83,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = EcommercePagination
 
     def get_permissions(self):
         if self.action in ['list', 'retrive']:
@@ -91,21 +92,21 @@ class CategoryViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
     
-    def list(self, request, *args, **Kwargs): # (API= WORKING)
+    def list(self, request, *args, **Kwargs): 
         category = self.get_queryset()
-        paginator = EcommercePagination
+        paginator = self.pagination_class()
         page = paginator.paginate_queryset(category, request)
         serializer = self.serializer_class(page, many= True)
         return paginator.get_paginated_response(serializer.data)
     
-    def post(self, request, *args, **Kwargs): #(API= WORKING)
+    def post(self, request, *args, **Kwargs): 
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
             return Response(serializer.data, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-    def put(self, request, category_id, *args, **Kwargs):  #(API= WORKING)
+    def put(self, request, category_id, *args, **Kwargs): 
         query_set = get_object_or_404( Category, category_id = category_id)
         serializer = self.serializer_class(query_set, data= request.data)
         if serializer.is_valid(raise_exception= True):
@@ -113,7 +114,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status= status.HTTP_200_OK)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, category_id, *args, **Kwargs): #(API= WORKING)    
+    def delete(self, request, category_id, *args, **Kwargs):    
         query_set = get_object_or_404(Category, category_id= category_id)
         query_set.delete()
         return Response({'Deleted Sucessfully'}, status= status.HTTP_200_OK)
@@ -133,7 +134,7 @@ class CartItemView(viewsets.ModelViewSet):
     def get_queryset(self):
         cart_id = self.kwargs.get('cart_pk')
         if not cart_id:
-            raise KeyError('cart_id not found in kwargs')
+            raise KeyError('cart_id not found')
         return Cartitems.objects.filter(cart_id= cart_id)
         
     
@@ -196,7 +197,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         try:
             amount = Order.total_price
             email = request.user.email
-            order_id = uuid4(Order.order_id)
+            order_id = str(uuid4())
             # redirect_url = "http://127.0.0.1:9000/api/Order/Confirm_pay/?id" + Order_id,
             return initial_payment(amount, email, order_id)
         except Exception as e:
@@ -336,15 +337,17 @@ class PasswordResetView(viewsets.ViewSet):
 
     
     
-# ALL USERS FOR IS ADMIN
-# class CustomUserView(viewsets.ModelViewSet):
-#     serializer_class = CustomUserSerializer
-#     queryset = CustomUsers.objects.get()
+    #  ALL USERS FOR IS ADMIN
+class AllUsersView(viewsets.ModelViewSet):
+    permission_classes = [IsAdminUser]
 
-#     def get(self, request):
-#         Users = self.get_queryset()
-#         serializer = self.serializer_class(Users, many= True)
-#         return Response(serializer.data, status= status.HTTP_200_OK)
+    queryset = CustomUsers.objects.all()
+    serializer_class = CustomUsersSerializer
+    
+    def get(self, request):
+        Users = self.get_queryset()
+        serializer = self.serializer_class(Users, many= True)
+        return Response(serializer.data, status= status.HTTP_200_OK)
 
 
 
@@ -365,7 +368,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class ShippingViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch']
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
     serializer_class = ShippingSerializer
     queryset = Shipping.objects.all()
 
@@ -393,9 +397,11 @@ class ShippingViewSet(viewsets.ModelViewSet):
         
 
 
-#         #SECTION FOR CREATING ROLE
+        #SECTION FOR CREATING ROLE
 
 class RoleViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdminUser]
+
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
 
@@ -407,5 +413,6 @@ class RoleViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save()
+
 
 

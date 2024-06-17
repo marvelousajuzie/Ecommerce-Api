@@ -57,6 +57,13 @@ class RefreshTokens(models.Model):
         return self.expires_at > timezone.now()
 
 
+class Category(models.Model):
+    name = models.CharField(max_length= 300)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
 
 class Product(models.Model): 
     product_id = models.UUIDField(primary_key= True, default= uuid4, editable= False)
@@ -64,7 +71,7 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits= 20, decimal_places=3)
     stock_quantity= models.IntegerField()
-    category = models.CharField(max_length= 300, blank= True)
+    category = models.ForeignKey(Category, on_delete= models.CASCADE, related_name= 'category')
     images = models.ImageField(upload_to='images/')
     tags = models.CharField(max_length=250, blank=True)
     rating = models.CharField(max_length=50, default= 'N/A', blank= True, null=True)
@@ -133,13 +140,7 @@ class Payment(models.Model):
         return self.payment_status
 
 
-class Category(models.Model):
-    category_id = models.UUIDField(primary_key= True, default=uuid4, editable=False)
-    name = models.CharField(max_length= 300)
-    description = models.TextField()
 
-    def __str__(self):
-        return self.name
     
 
 class Review(models.Model):

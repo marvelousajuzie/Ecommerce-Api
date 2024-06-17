@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drf_spectacular',
+    'django_filters',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -178,6 +179,5 @@ EMAIL_HOST_PASSWORD = 'Marvelous@2000'  # Replace with your Gmail password or ap
 
 FLW_SEC_KEY = "FLWSECK_TEST-39917726e5d83b479b6a4bbf5bbfb6ae-X"
 
-# FLW_SEC_KEY = "39917726e5d83b479b6a4bbf5bbfb6ae-X"
 
 DEFAULT_FROM_EMAIL = 'Chizurummarvelous14@gmail.com'

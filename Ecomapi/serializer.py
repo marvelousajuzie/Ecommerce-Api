@@ -194,7 +194,7 @@ class ShippingSerializer(serializers.ModelSerializer):
 
 
 class RoleSerializer(serializers.ModelSerializer):
-    class meta:
+    class Meta:
         model = Role
         fields = ['id', 'name', 'permission']
 
@@ -239,8 +239,6 @@ class PasswordResetSerializer(serializers.ModelSerializer):
 
 
 
-
-
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
@@ -248,14 +246,14 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 
-
-
 class CategorySerializer(serializers.ModelSerializer):
-    class   Meta:
+    class Meta:
         model = Category
-        fields = '__all__'
-
+        fields =['name', 'description']
         
 
 
- 
+class CustomUsersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUsers
+        fields = ['email', 'username','is_staff']
