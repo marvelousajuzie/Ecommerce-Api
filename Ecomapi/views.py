@@ -1,5 +1,4 @@
 import uuid
-import requests
 from django.shortcuts import render, get_object_or_404
 from .serializer import *
 from drf_spectacular.utils import extend_schema
@@ -12,6 +11,8 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from .filltering import ProductFilter
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
@@ -39,6 +40,10 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProductFilter
+    ordering_fields = ['name', 'price', 'category', 'available']
+    ordering = ['name']
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -157,19 +162,11 @@ class CartItemView(viewsets.ModelViewSet):
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     permission_classes = [IsAuthenticated]
-
-    # def get_permissions(self):
-    #     if self.action in ['list', 'retrieve']:
-    #         permission_classes = [IsAdminUser]
-    #     else:
-    #         return Order.objects.filter(user=self.request.user)
-    #     return [permission() for permission in permission_classes]
     
     def get_queryset(self):
         if self.request.user.is_staff or self.request.user.is_superuser:
-            Order.objects.all()
-        else:
-            return Order.objects.filter(user_id =self.request.user)
+            return Order.objects.all()
+        return Order.objects.filter(user_id =self.request.user)
 
 
     def get_serializer_class(self):

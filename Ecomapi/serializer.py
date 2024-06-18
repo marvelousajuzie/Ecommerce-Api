@@ -145,8 +145,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
         
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
-    # total_price = serializers.SerializerMethodField()
-
     class Meta:
         model = Order
         fields = ['order_id', 'cart', 'user_id', 'total_price','order_status', 'items']
@@ -176,7 +174,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
                     product=cart_item.product,
                     quantity=cart_item.quantity,
                     )
-        order_items.append(order_item)
+                order_items.append(order_item)
         
         OrderItem.objects.bulk_create(order_items)
         return order
@@ -229,9 +227,6 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
-
-
-
 
 
 class PasswordResetSerializer(serializers.ModelSerializer):
