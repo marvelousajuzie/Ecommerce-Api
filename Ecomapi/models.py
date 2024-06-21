@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema_field
 from decimal import Decimal
 from django.contrib.auth import get_user_model
 from uuid import uuid4
@@ -38,6 +39,9 @@ class User(models.Model):
     payment_method = models.CharField(max_length=200, choices= paymethod)
 
    
+
+
+
 
                            # ROLE MODEL
 class Role(models.Model):
@@ -120,7 +124,7 @@ class Order(models.Model):
         return self.order_status
     
     @property
-    def total_price(self):
+    def total_price(self)  -> float:
         items = self.items.all()
         sub_total = sum(item.quantity * item.product.price for item in items)
         return sub_total

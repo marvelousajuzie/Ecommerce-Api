@@ -149,8 +149,6 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'
     ],
-
-
     
 }
 
@@ -161,8 +159,9 @@ SIMPLE_JWT = {
 
 }
 
-SPECTACULAR_SETTING = {
-    'TITLE': 'ECOMMERCE APP'
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Ecommerce API',
+    'DESCRIPTION': "ECOMMERCE  API FOR FOR USERS TO BUY PRODUCT(ha ha ha ha ha, Very Funny Right?)"
 }
 
 
@@ -172,17 +171,16 @@ SECURE_SSL_REDIRECT = False
 
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'Chizurummarvelous14@gmail.com'  # Replace with your Gmail email address
-EMAIL_HOST_PASSWORD = 'Marvelous@2000'  # Replace with your Gmail password or app password
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'Chizurummarvelous14@gmail.com'  # Replace with your Gmail email address
+# EMAIL_HOST_PASSWORD = ''  # Replace with your Gmail password or app password
 
 
 
-FLW_SEC_KEY = "FLWSECK_TEST-39917726e5d83b479b6a4bbf5bbfb6ae-X"
-
+FLW_SEC_KEY = config('FLW_SEC_KEY')
 
 DEFAULT_FROM_EMAIL = 'Chizurummarvelous14@gmail.com'
 

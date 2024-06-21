@@ -1,0 +1,1474 @@
+openapi: 3.0.3
+info:
+  title: ECOMMERCE API
+  version: 0.0.0
+  description: ECOMMERCE  API FOR FOR USERS TO BUY PRODUCT(ha ha ha ha ha, Very Funny
+    Right?)
+paths:
+  /api/AllUsers/:
+    get:
+      operationId: api_AllUsers_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomUsers'
+          description: ''
+  /api/Basket/:
+    get:
+      operationId: api_Basket_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cart'
+          description: ''
+    post:
+      operationId: api_Basket_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cart'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Cart'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Cart'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: ''
+  /api/Basket/{cart_pk}/Items/:
+    get:
+      operationId: api_Basket_Items_list
+      parameters:
+      - in: path
+        name: cart_pk
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cart.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CartItem'
+          description: ''
+    post:
+      operationId: api_Basket_Items_create
+      parameters:
+      - in: path
+        name: cart_pk
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cart.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToCart'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddToCart'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddToCart'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddToCart'
+          description: ''
+  /api/Category/:
+    get:
+      operationId: api_Category_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCategoryList'
+          description: ''
+    post:
+      operationId: api_Category_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Category'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Category'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/Category/{id}/:
+    get:
+      operationId: api_Category_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    put:
+      operationId: api_Category_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Category'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Category'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    delete:
+      operationId: api_Category_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/Login/:
+    post:
+      operationId: api_Login_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersLogin'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UsersLogin'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UsersLogin'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersLogin'
+          description: ''
+  /api/Logout/:
+    post:
+      operationId: api_Logout_create
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          description: No response body
+  /api/Order/:
+    get:
+      operationId: api_Order_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+          description: ''
+    post:
+      operationId: api_Order_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrder'
+          description: ''
+  /api/Order/{nested_1_pk}/shipping/:
+    get:
+      operationId: api_Order_shipping_list
+      parameters:
+      - in: path
+        name: nested_1_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shipping'
+          description: ''
+    post:
+      operationId: api_Order_shipping_create
+      parameters:
+      - in: path
+        name: nested_1_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Shipping'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Shipping'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Shipping'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipping'
+          description: ''
+  /api/Order/{nested_1_pk}/shipping/{shipping_id}/:
+    get:
+      operationId: api_Order_shipping_retrieve
+      parameters:
+      - in: path
+        name: nested_1_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: shipping_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this shipping.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipping'
+          description: ''
+    patch:
+      operationId: api_Order_shipping_partial_update
+      parameters:
+      - in: path
+        name: nested_1_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: shipping_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this shipping.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedShipping'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedShipping'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedShipping'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipping'
+          description: ''
+  /api/Order/{order_id}/:
+    get:
+      operationId: api_Order_retrieve
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    delete:
+      operationId: api_Order_destroy
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/Order/{order_id}/payment/:
+    post:
+      operationId: api_Order_payment_create
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrder'
+          description: ''
+  /api/Order/confirm_pay/:
+    post:
+      operationId: api_Order_confirm_pay_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrder'
+          description: ''
+  /api/Product/:
+    get:
+      operationId: api_Product_list
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: integer
+      - in: query
+        name: name__icontains
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+          description: ''
+    post:
+      operationId: api_Product_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+  /api/Product/{product_id}/:
+    get:
+      operationId: api_Product_retrieve
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+    put:
+      operationId: api_Product_update
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+    patch:
+      operationId: api_Product_partial_update
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+    delete:
+      operationId: api_Product_destroy
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/Product/{product_pk}/reviews/:
+    get:
+      operationId: api_Product_reviews_list
+      parameters:
+      - in: path
+        name: product_pk
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+          description: ''
+    post:
+      operationId: api_Product_reviews_create
+      parameters:
+      - in: path
+        name: product_pk
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Review'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Review'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+  /api/Register/:
+    post:
+      operationId: api_Register_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersRegister'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UsersRegister'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UsersRegister'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersRegister'
+          description: ''
+  /api/Role/:
+    get:
+      operationId: api_Role_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+          description: ''
+    post:
+      operationId: api_Role_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Role'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Role'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+  /api/Role/{id}/:
+    get:
+      operationId: api_Role_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this role.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+    put:
+      operationId: api_Role_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this role.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Role'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Role'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+    patch:
+      operationId: api_Role_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this role.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+    delete:
+      operationId: api_Role_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this role.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+components:
+  schemas:
+    AddToCart:
+      type: object
+      properties:
+        cart_id:
+          type: string
+          format: uuid
+          readOnly: true
+        product_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          maximum: 32767
+          minimum: 0
+      required:
+      - cart_id
+      - product_id
+    Cart:
+      type: object
+      properties:
+        cart_id:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - cart_id
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        cart:
+          type: string
+          format: uuid
+        product:
+          $ref: '#/components/schemas/SmallProduct'
+        quantity:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        sub_total:
+          type: number
+          format: double
+          readOnly: true
+      required:
+      - cart
+      - id
+      - product
+      - sub_total
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 300
+        description:
+          type: string
+      required:
+      - description
+      - id
+      - name
+    CreateOrder:
+      type: object
+      properties:
+        cart:
+          type: string
+          format: uuid
+        user_id:
+          type: integer
+      required:
+      - cart
+      - user_id
+    CustomUsers:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email Address
+          maxLength: 254
+        username:
+          type: string
+          maxLength: 200
+        is_staff:
+          type: boolean
+      required:
+      - email
+      - is_staff
+      - username
+    Order:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+          readOnly: true
+        cart:
+          type: string
+          format: uuid
+        user_id:
+          type: integer
+        total_price:
+          type: number
+          format: double
+          readOnly: true
+        order_status:
+          type: string
+          maxLength: 50
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+      required:
+      - cart
+      - items
+      - order_id
+      - total_price
+      - user_id
+    OrderItem:
+      type: object
+      properties:
+        product:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          maximum: 32767
+          minimum: 0
+      required:
+      - product
+      - quantity
+    PaginatedCategoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+    PatchedProduct:
+      type: object
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 250
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,17}(?:\.\d{0,3})?$
+        stock_quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        category:
+          type: integer
+        images:
+          type: string
+          format: uri
+        tags:
+          type: string
+          maxLength: 250
+        rating:
+          type: string
+          nullable: true
+          maxLength: 50
+    PatchedRole:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 300
+        permission: {}
+    PatchedShipping:
+      type: object
+      properties:
+        shipping_id:
+          type: string
+          format: uuid
+          readOnly: true
+        shipping_address:
+          type: string
+          maxLength: 2000
+        country:
+          type: string
+          maxLength: 100
+        payment_method:
+          type: string
+          maxLength: 100
+        shipping_method:
+          type: string
+          maxLength: 50
+        estimated_delivery_date:
+          type: string
+          format: date
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        order_id:
+          type: string
+          format: uuid
+    Product:
+      type: object
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 250
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,17}(?:\.\d{0,3})?$
+        stock_quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        category:
+          type: integer
+        images:
+          type: string
+          format: uri
+        tags:
+          type: string
+          maxLength: 250
+        rating:
+          type: string
+          nullable: true
+          maxLength: 50
+      required:
+      - category
+      - description
+      - images
+      - name
+      - price
+      - product_id
+      - stock_quantity
+    Review:
+      type: object
+      properties:
+        review_id:
+          type: string
+          format: uuid
+          readOnly: true
+        rating:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        comment:
+          type: string
+        review_date:
+          type: string
+          format: date-time
+          readOnly: true
+        user_id:
+          type: integer
+        product_id:
+          type: string
+          format: uuid
+      required:
+      - comment
+      - product_id
+      - rating
+      - review_date
+      - review_id
+      - user_id
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 300
+        permission: {}
+      required:
+      - id
+      - name
+    Shipping:
+      type: object
+      properties:
+        shipping_id:
+          type: string
+          format: uuid
+          readOnly: true
+        shipping_address:
+          type: string
+          maxLength: 2000
+        country:
+          type: string
+          maxLength: 100
+        payment_method:
+          type: string
+          maxLength: 100
+        shipping_method:
+          type: string
+          maxLength: 50
+        estimated_delivery_date:
+          type: string
+          format: date
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        order_id:
+          type: string
+          format: uuid
+      required:
+      - estimated_delivery_date
+      - order_id
+      - shipping_address
+      - shipping_id
+      - shipping_method
+      - updated_at
+    SmallProduct:
+      type: object
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 250
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,17}(?:\.\d{0,3})?$
+      required:
+      - name
+      - price
+      - product_id
+    UsersLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          maxLength: 200
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    UsersRegister:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email Address
+          maxLength: 254
+        username:
+          type: string
+          maxLength: 200
+        password:
+          type: string
+          writeOnly: true
+        password2:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+      - password2
+      - username
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

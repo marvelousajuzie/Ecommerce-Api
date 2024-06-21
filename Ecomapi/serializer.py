@@ -3,6 +3,7 @@ from Ecommerce import settings
 from .permission import PERMISSION_CHOICES
 from rest_framework import serializers
 from .neverbounce import verify_email
+from drf_spectacular.utils import extend_schema_field
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from .models import *
@@ -10,7 +11,7 @@ from .models import *
 
 
 
-               
+ 
 #PRODUCT SERIALIZER
 class ProductSerializer(serializers.ModelSerializer):     
     class Meta:
@@ -107,8 +108,8 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cartitems
         fields = ['id', 'cart', 'product', 'quantity', 'sub_total']
-
-    def total(self, cartitem:Cartitems):
+        
+    def total(self, cartitem: Cartitems) -> float:
         return cartitem.quantity * cartitem.product.price
 
 class UpdateCartSerializer(serializers.ModelSerializer):
@@ -157,9 +158,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = ['order_id', 'cart', 'user_id', 'total_price','order_status', 'items']
 
-    def get_total_price(self, order):
-        return sum(item.quantity * item.product.price for item in order.items.all())
-
+    
     
 class CreateOrderSerializer(serializers.ModelSerializer):
     cart = serializers.UUIDField()
@@ -249,7 +248,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields =['name', 'description']
+        fields =['id', 'name', 'description']
         
 
 

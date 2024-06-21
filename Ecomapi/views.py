@@ -2,7 +2,7 @@ import uuid
 from django.shortcuts import render, get_object_or_404
 from .serializer import *
 from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins, status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from datetime import datetime, timedelta
@@ -14,7 +14,6 @@ from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from .filltering import ProductFilter
 from rest_framework.response import Response
-from rest_framework import status
 from django.db import transaction
 from .pagination import EcommercePagination
 from django.core.mail import send_mail
@@ -65,9 +64,9 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-    def patch(self, request, product_id):  
+    def put(self, request, product_id):  
         query_set = get_object_or_404(Product, product_id= product_id)
-        serializer = self.serializer_class(query_set, data=request.data, partial= True)
+        serializer = self.serializer_class(query_set, data=request.data,  partial= True)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
             return Response({'message': 'Updated Successfully'}, status= status.HTTP_200_OK)
@@ -83,7 +82,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
                         #CATEGORY VIEWSET     (API = WORKING)
 class CategoryViewSet(viewsets.ModelViewSet):
-
+    http_method_names = ['get', 'post', 'put', 'delete']
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = EcommercePagination
@@ -126,15 +125,19 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
  
                       #CART VIEWSET       (API = WORKING)
-class CartView(viewsets.ModelViewSet):
+class CartView(mixins.CreateModelMixin,mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
-
-class CartItemView(viewsets.ModelViewSet):
     
-    http_method_names = ['get', 'post', 'patch', 'delete']
 
+
+class CartItemView(mixins.CreateModelMixin,mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Cart.objects.none()
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Cartitems.objects.none()
         cart_id = self.kwargs.get('cart_pk')
         if not cart_id:
             raise KeyError('cart_id not found')
@@ -158,6 +161,7 @@ class CartItemView(viewsets.ModelViewSet):
 
                  #ORDER VIEWSET                (API = WORKING)
 class OrderViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post','delete']
     queryset = Order.objects.all()
     permission_classes = [IsAuthenticated]
     
@@ -166,23 +170,21 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Order.objects.all()
         return Order.objects.filter(user_id =self.request.user)
 
-
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return CreateOrderSerializer
         return OrderSerializer
     
 
-    def perform_create(self, serializer):
+    def create(self, request):
         user = self.request.user
         if user.is_authenticated and isinstance(user, CustomUsers):
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
             serializer.save(user_id=user)
+            return Response({'message': 'Ordered Sucessfully'}, status= status.HTTP_201_CREATED)
         else:
             raise PermissionDenied("Cannot create an order without a valid user.")
-
-
-    def get_serializer_context(self):
-        return {"user_id": self.request.user.id}
     
 
                 #PAYMENT VIEWSET                (API = WORKING)
@@ -216,10 +218,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     
                      #AUTHENTICATION  SECTION        
 #USER REGISTER VIEWSET                                (API = WORKING)
-class UsersRegisterViewSet(viewsets.ModelViewSet):
+class UsersRegisterViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = UsersRegisterSerializer
-    def get_queryset(self):
-        return []
 
     def create(self, request, *args, **Kwargs):                                     #(API= WORKING)
         serializer = self.serializer_class(data= request.data)
@@ -231,14 +231,9 @@ class UsersRegisterViewSet(viewsets.ModelViewSet):
 
 
                     #USER LOGIN VIEWSET           (API = WORKING)
-class UsersLoginViewSet(viewsets.ModelViewSet):
+class UsersLoginViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = UsersLoginSerializer
-
-    @extend_schema(responses= serializer_class)
-
-    def get_queryset(self):
-        return []
-
+    
     def create(self, request):                                 
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid():
@@ -256,13 +251,10 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
 
     
 #CUSTOMER LOGOUT                               (API = WORKING)
-class LogoutViewSet(viewsets.ModelViewSet):
+class LogoutViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = LogoutSerializer
 
-    def get_queryset(self):
-        return []
-    
     def create(self, request):
         try:
             refresh_token = request.data.get('refresh')
@@ -274,7 +266,7 @@ class LogoutViewSet(viewsets.ModelViewSet):
 
     
                         #ALLUSERS VIEWSET   (API = WORKING)
-class AllUsersView(viewsets.ModelViewSet):
+class AllUsersView(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAdminUser]
 
     queryset = CustomUsers.objects.all()
@@ -288,7 +280,7 @@ class AllUsersView(viewsets.ModelViewSet):
 
 
                              #REVIEW VIEWSET            (API = WORKING)
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
@@ -306,12 +298,13 @@ class ShippingViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch']
 
     permission_classes = [IsAuthenticated]
-
+    queryset = Shipping.objects.none()
+   
     serializer_class = ShippingSerializer
-    queryset = Shipping.objects.all()
-
 
     def get_queryset(self):
+        if getattr(self, 'Swagger_Fake_view', False):
+            return Shipping.objects.all()
         order_id = self.kwargs.get('order_pk')
         if not order_id:
             raise KeyError('order_id Not Found')
@@ -349,11 +342,11 @@ class RoleViewSet(viewsets.ModelViewSet):
 
         return Response({'detail':  'Permissions assigned successfully.'}, status=status.HTTP_200_OK)
 
-    def perform_create(self, serializer):
-        serializer.save()
+    # def perform_create(self, serializer):
+    #     serializer.save()
 
-    def perform_update(self, serializer):
-        serializer.save()
+    # def perform_update(self, serializer):
+    #     serializer.save()
 
 
 
