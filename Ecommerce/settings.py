@@ -185,3 +185,7 @@ FLW_SEC_KEY = "FLWSECK_TEST-39917726e5d83b479b6a4bbf5bbfb6ae-X"
 
 
 DEFAULT_FROM_EMAIL = 'Chizurummarvelous14@gmail.com'
+
+
+
+NEVERBOUNCE_API_KEY = config('NEVERBOUNCE_API_KEY')

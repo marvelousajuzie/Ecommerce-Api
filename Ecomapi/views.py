@@ -21,7 +21,9 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from Ecommerce import settings
 from .models import *
+from .permission import CAN_MANAGE_PRODUCTS, CAN_MANAGE_ORDERS, CAN_MANAGE_CATEGORIES
 from .models import Category
+import logging
 from .view import *
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
@@ -34,16 +36,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 
         
-                          #SECTION FOR PRODUCTVIEW   # (API= WORKING)
-
+                          #PRODUCT VIEWSET           (API = WORKING)
 class ProductViewSet(viewsets.ModelViewSet):
-
     serializer_class = ProductSerializer
-    queryset = Product.objects.all()
+    queryset = Product.objects.all().order_by('name')
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProductFilter
-    ordering_fields = ['name', 'price', 'category', 'available']
-    ordering = ['name']
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -52,14 +50,14 @@ class ProductViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
     
-    def list(self, request, *args, **Kwargs):
+    def list(self, request):
         product = self.get_queryset()
         paginator = EcommercePagination()
         page = paginator.paginate_queryset(product, request)
         serializer = self.serializer_class(page, many= True)
         return paginator.get_paginated_response(serializer.data)
     
-    def post(self, request, *args, **Kwargs):   
+    def post(self, request):   
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
@@ -76,14 +74,14 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
 
-    def delete(self, request, product_id, *args, **Kwargs):  
+    def delete(self, request, product_id):  
         product = get_object_or_404( Product, product_id= product_id)
         product.delete()
         return Response({'message': 'Product Deleted Successfully'}, status= status.HTTP_200_OK)
     
 
 
-                         # SECTION FOR CATEGORY  # (API= WORKING)
+                        #CATEGORY VIEWSET     (API = WORKING)
 class CategoryViewSet(viewsets.ModelViewSet):
 
     queryset = Category.objects.all()
@@ -97,21 +95,21 @@ class CategoryViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
     
-    def list(self, request, *args, **Kwargs): 
+    def list(self, request): 
         category = self.get_queryset()
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(category, request)
         serializer = self.serializer_class(page, many= True)
         return paginator.get_paginated_response(serializer.data)
     
-    def post(self, request, *args, **Kwargs): 
+    def post(self, request): 
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid(raise_exception= True):
             serializer.save()
             return Response(serializer.data, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-    def put(self, request, category_id, *args, **Kwargs): 
+    def put(self, request, category_id): 
         query_set = get_object_or_404( Category, category_id = category_id)
         serializer = self.serializer_class(query_set, data= request.data)
         if serializer.is_valid(raise_exception= True):
@@ -119,15 +117,15 @@ class CategoryViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status= status.HTTP_200_OK)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, category_id, *args, **Kwargs):    
+    def delete(self, request, category_id):    
         query_set = get_object_or_404(Category, category_id= category_id)
         query_set.delete()
         return Response({'Deleted Sucessfully'}, status= status.HTTP_200_OK)
 
 
 
-  # SECTTION FOR ADD TO CART
-
+ 
+                      #CART VIEWSET       (API = WORKING)
 class CartView(viewsets.ModelViewSet):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
@@ -158,7 +156,7 @@ class CartItemView(viewsets.ModelViewSet):
 
     
 
-                 #SECTION FOR ORDER  # (API= WORKING)
+                 #ORDER VIEWSET                (API = WORKING)
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     permission_classes = [IsAuthenticated]
@@ -187,7 +185,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         return {"user_id": self.request.user.id}
     
 
-             #PAYMENT
+                #PAYMENT VIEWSET                (API = WORKING)
     @action(detail= True, methods= ['POST'])
     def payment(self, request, pk):
         Order = self.get_object()
@@ -203,11 +201,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail= False, methods= ['POST'])
     def confirm_pay(self,request):
         order_id = request.GET.get("o_id")
-        # try:
-        #     uuid.UUID(order_id)
-        # except ValueError:
-        #     return Response({"error": f"'{order_id}' is not a valid UUID."},
-        #                     status=status.HTTP_400_BAD_REQUEST)
         order = Order.objects.get(order_id=order_id)
         order.order_status = "confirmed"
         order.save()
@@ -222,7 +215,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     
                      #AUTHENTICATION  SECTION        
-# CUSTOMER REGISTRATION
+#USER REGISTER VIEWSET                                (API = WORKING)
 class UsersRegisterViewSet(viewsets.ModelViewSet):
     serializer_class = UsersRegisterSerializer
     def get_queryset(self):
@@ -237,7 +230,7 @@ class UsersRegisterViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 
-#CUSTOMER LOGIN
+                    #USER LOGIN VIEWSET           (API = WORKING)
 class UsersLoginViewSet(viewsets.ModelViewSet):
     serializer_class = UsersLoginSerializer
 
@@ -246,7 +239,7 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return []
 
-    def create(self, request):                                 #(API= WORKING) 
+    def create(self, request):                                 
         serializer = self.serializer_class(data= request.data)
         if serializer.is_valid():
             user= serializer.validated_data['user']
@@ -262,7 +255,7 @@ class UsersLoginViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
     
-#CUSTOMER LOGOUT
+#CUSTOMER LOGOUT                               (API = WORKING)
 class LogoutViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = LogoutSerializer
@@ -279,62 +272,8 @@ class LogoutViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)      
 
-
-
-class PasswordResetView(viewsets.ViewSet):
-    def get_queryset(self):
-        return []
     
-    def create(self, request, *args, **kwargs):
-        email = request.data.get('email')
-        user = CustomUsers.objects.filter(email=email).first()
-        if user:
-            context = {
-                'email': email,
-                'domain': request.META['HTTP_HOST'],
-                'site_name': 'YourSiteName',
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user),
-                'protocol': 'https' if request.is_secure() else 'http',
-            }
-            subject = 'Password Reset Request'
-            message = render_to_string('password_reset_email.html', context)
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
-            return Response({'message': 'Password reset instructions have been sent to your email.'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'email does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class PasswordResetConfirmView(viewsets.ModelViewSet):
-#     def post(self, request, *args, **kwargs):
-#         uidb64 = request.data.get('uidb64')
-#         token = request.data.get('token')
-#         password = request.data.get('password')
-
-#         try:
-#             uid = force_text(urlsafe_base64_decode(uidb64))
-#             user = User.objects.get(pk=uid)
-#         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-#             user = None
-
-#         if user and default_token_generator.check_token(user, token):
-#             user.set_password(password)
-#             user.save()
-#             return Response({'message': 'Your password has been reset successfully.'}, status=status.HTTP_200_OK)
-#         else:
-#             return Response({'error': 'Invalid password reset link.'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
-
-
-
-    
-    
-    #  ALL USERS FOR IS ADMIN
+                        #ALLUSERS VIEWSET   (API = WORKING)
 class AllUsersView(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
 
@@ -348,8 +287,7 @@ class AllUsersView(viewsets.ModelViewSet):
 
 
 
- 
-# FOR CUSTOMER TO POST REVIEW
+                             #REVIEW VIEWSET            (API = WORKING)
 class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Review.objects.all()
@@ -361,7 +299,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
             raise KeyError('Product_id Not Found')
         return Review.objects.filter(product_id= product_id)
   
+ 
 
+                              #SHIPPING VIEWSET                  (API = WORKING)
 class ShippingViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch']
 
@@ -393,17 +333,21 @@ class ShippingViewSet(viewsets.ModelViewSet):
         return Response(serializers.errors)
         
 
-
-        #SECTION FOR CREATING ROLE
-
+                             #ROLE VIEWSET    (API = WORKING)
 class RoleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
 
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
 
-    def get_queryset(self):
-        return Role.objects.all()
+    def assign_permissions(self, request, pk=None):
+        role = get_object_or_404(Role, pk=pk)
+        permissions = request.data.get('permissions', [])
+
+        role.permissions = permissions
+        role.save()
+
+        return Response({'detail':  'Permissions assigned successfully.'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         serializer.save()

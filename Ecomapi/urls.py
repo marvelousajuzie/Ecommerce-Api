@@ -48,7 +48,6 @@ router.register(r'AllUsers', AllUsersView, basename='allusers')
 
 
 
-router.register(r'passwordreset',PasswordResetView, basename= 'password')
 
 
 

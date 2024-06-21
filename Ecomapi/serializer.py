@@ -1,5 +1,8 @@
-from typing import Any
+import requests
+from Ecommerce import settings
+from .permission import PERMISSION_CHOICES
 from rest_framework import serializers
+from .neverbounce import verify_email
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from .models import *
@@ -7,7 +10,7 @@ from .models import *
 
 
 
-
+               
 #PRODUCT SERIALIZER
 class ProductSerializer(serializers.ModelSerializer):     
     class Meta:
@@ -25,7 +28,7 @@ class SmallProductSerializer(serializers.ModelSerializer):
 
                        #AUTHENTICATION SECTION
                        
-# CUSTOMER REGISTER SERIALIZER
+# USERS REGISTER SERIALIZER
 class UsersRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only = True)
     password2 = serializers.CharField(write_only = True)
@@ -38,7 +41,11 @@ class UsersRegisterSerializer(serializers.ModelSerializer):
         if CustomUsers.objects.filter(email= value).exists():
             raise serializers.ValidationError('Email Already In Use')
         return value
-    
+        
+        # if not verify_email(value):
+        #     raise serializers.ValidationError("Invalid Email Address")
+       
+        
     def validate(self, data):
         if data['password'] != data['password2']:
             raise serializers.ValidationError('Password Do Not Match')
@@ -54,6 +61,8 @@ class UsersRegisterSerializer(serializers.ModelSerializer):
             
         )
         return user
+
+    
 
  
               # LOGIN SERIALIZER
@@ -85,7 +94,7 @@ class LogoutSerializer(serializers.Serializer):
 
 
 
-                #CART SECTION
+                #CART SECTION  SERIALIZER
 class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
@@ -140,8 +149,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ['product', 'quantity']
 
-        # def get_price(self, orderitem):
-        #     return self.product.price
+
         
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
@@ -189,12 +197,13 @@ class ShippingSerializer(serializers.ModelSerializer):
 
 
 
-
-
+  
+                               #ROLE SERIALIZER
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ['id', 'name', 'permission']
+        permissions = serializers.MultipleChoiceField(choices=PERMISSION_CHOICES, required=False)
 
 
     def create(self, validated_data):
@@ -212,35 +221,31 @@ class RoleSerializer(serializers.ModelSerializer):
         return instance
 
 
-#USERS FOR IS ADMIN
+                   #CUSTOM USERS SERIALIZER
 class CustomUserSerializer(serializers.ModelSerializer):
     class meta:
         model = CustomUsers
         fields = '__all__'
 
 
-# REVIEW FOR IS ADMIN
 
-
+                                       
+          #REVIEW SERIALIZER
 class ReviewSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Review
         fields = '__all__'
 
 
-class PasswordResetSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
 
-
-
+                     #PAYMENT SERIALIZER
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
 
 
-
+                    #CATEGORY SERIALIZER
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category

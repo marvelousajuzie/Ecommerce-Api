@@ -11,7 +11,7 @@ from uuid import uuid4
 
 
 
-
+                     # USERS MODEL
 class CustomUsers(AbstractUser):                                     
     email= models.EmailField(unique= True, verbose_name= _('Email Address'))
     username = models.CharField(max_length=200, verbose_name= _('Username'))
@@ -37,8 +37,9 @@ class User(models.Model):
     }
     payment_method = models.CharField(max_length=200, choices= paymethod)
 
+   
 
-
+                           # ROLE MODEL
 class Role(models.Model):
     name = models.CharField(max_length= 300)
     permission = models.JSONField(default= list)
@@ -46,7 +47,8 @@ class Role(models.Model):
     def __str__(self):
         return self.name
     
-    
+           
+                                   # REFRESH TOKEN MODEL
 class RefreshTokens(models.Model):
     user = models.ForeignKey(CustomUsers, on_delete= models.CASCADE)
     token = models.CharField(max_length= 300, unique=True)
@@ -56,7 +58,8 @@ class RefreshTokens(models.Model):
     def is_valid(self):
         return self.expires_at > timezone.now()
 
-
+ 
+                                      #CATEGORY MODEL
 class Category(models.Model):
     name = models.CharField(max_length= 300)
     description = models.TextField()
@@ -64,7 +67,9 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+     
 
+                                       #PRODUCT MODEL
 class Product(models.Model): 
     product_id = models.UUIDField(primary_key= True, default= uuid4, editable= False)
     name = models.CharField(max_length= 250)
@@ -80,6 +85,8 @@ def __str__(self):
     return self.name
 
 
+
+                                #CART MODEL
 class Cart(models.Model):
     cart_id = models.UUIDField(primary_key= True, default=uuid4, editable= False)
     creation_date = models.DateField(auto_now_add=True)
@@ -99,6 +106,8 @@ class Cartitems(models.Model):
 
 
 
+
+                                #ORDER MODEL
 class Order(models.Model):
     order_id = models.UUIDField(primary_key= True, default= uuid4, editable=False, unique= True)
     user_id = models.ForeignKey(CustomUsers, on_delete= models.CASCADE)
@@ -125,7 +134,10 @@ class OrderItem(models.Model):
    
     def __str__(self):
         return self.order
+    
 
+          
+                               #PAYMENT MODEL
 class Payment(models.Model):
     Payment_id = models.UUIDField(primary_key= True, default=uuid4, editable=False)
     user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
@@ -142,7 +154,7 @@ class Payment(models.Model):
 
 
     
-
+                             #REVIEW MODEL
 class Review(models.Model):
     review_id = models.UUIDField(primary_key= True, default=uuid4, editable=False)
     user_id = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
@@ -156,7 +168,7 @@ class Review(models.Model):
         return f"{self.review_id}"
     
 
-
+                                    #SHIPPING MODEL
 class Shipping(models.Model):
     shipping_id = models.UUIDField(primary_key= True, default=uuid4, editable=False)
     order_id = models.OneToOneField(Order, on_delete=models.CASCADE, related_name= 'shipping')
