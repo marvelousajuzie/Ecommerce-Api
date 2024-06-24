@@ -193,8 +193,7 @@ class ShippingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shipping
         fields = '__all__'
-
-
+        
 
   
                                #ROLE SERIALIZER
