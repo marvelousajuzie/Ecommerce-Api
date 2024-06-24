@@ -8,7 +8,7 @@ paths:
   /api/AllUsers/:
     get:
       operationId: api_AllUsers_list
-      tags:
+      tags:  Is_Admin To List Out All Users
       - api
       security:
       - jwtAuth: []
@@ -24,7 +24,7 @@ paths:
   /api/Basket/:
     get:
       operationId: api_Basket_list
-      tags:
+      tags:  List Items In The Cart
       - api
       security:
       - jwtAuth: []
@@ -40,7 +40,7 @@ paths:
           description: ''
     post:
       operationId: api_Basket_create
-      tags:
+      tags:  Adding Items To Cart
       - api
       requestBody:
         content:
@@ -138,7 +138,7 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
-      tags:
+      tags:   List All Category
       - api
       security:
       - jwtAuth: []
@@ -152,7 +152,7 @@ paths:
           description: ''
     post:
       operationId: api_Category_create
-      tags:
+      tags: Create New Category
       - api
       requestBody:
         content:
@@ -185,7 +185,7 @@ paths:
           type: integer
         description: A unique integer value identifying this category.
         required: true
-      tags:
+      tags: Get Each Category
       - api
       security:
       - jwtAuth: []
@@ -205,7 +205,7 @@ paths:
           type: integer
         description: A unique integer value identifying this category.
         required: true
-      tags:
+      tags:  Update New Category
       - api
       requestBody:
         content:
@@ -237,7 +237,7 @@ paths:
           type: integer
         description: A unique integer value identifying this category.
         required: true
-      tags:
+      tags: Delete Category
       - api
       security:
       - jwtAuth: []
@@ -247,7 +247,7 @@ paths:
   /api/Login/:
     post:
       operationId: api_Login_create
-      tags:
+      tags:  Registered User Can Login
       - api
       requestBody:
         content:
@@ -274,7 +274,7 @@ paths:
   /api/Logout/:
     post:
       operationId: api_Logout_create
-      tags:
+      tags:  Authenticated Users Logout
       - api
       security:
       - jwtAuth: []
@@ -284,7 +284,7 @@ paths:
   /api/Order/:
     get:
       operationId: api_Order_list
-      tags:
+      tags:  Get All Orders
       - api
       security:
       - jwtAuth: []
@@ -299,7 +299,7 @@ paths:
           description: ''
     post:
       operationId: api_Order_create
-      tags:
+      tags:  Create Order 
       - api
       requestBody:
         content:
@@ -331,7 +331,7 @@ paths:
         schema:
           type: string
         required: true
-      tags:
+      tags:   Get Order/Shpping Details
       - api
       security:
       - jwtAuth: []
@@ -352,7 +352,7 @@ paths:
         schema:
           type: string
         required: true
-      tags:
+      tags: Add Shipping Details To Items
       - api
       requestBody:
         content:
@@ -391,7 +391,7 @@ paths:
           format: uuid
         description: A UUID string identifying this shipping.
         required: true
-      tags:
+      tags: Get Order/Shipping Details
       - api
       security:
       - jwtAuth: []
@@ -450,7 +450,7 @@ paths:
           format: uuid
         description: A UUID string identifying this order.
         required: true
-      tags:
+      tags: Get Orders
       - api
       security:
       - jwtAuth: []
@@ -471,7 +471,7 @@ paths:
           format: uuid
         description: A UUID string identifying this order.
         required: true
-      tags:
+      tags: Delete Orders
       - api
       security:
       - jwtAuth: []
@@ -489,7 +489,7 @@ paths:
           format: uuid
         description: A UUID string identifying this order.
         required: true
-      tags:
+      tags:  Orders Payment
       - api
       requestBody:
         content:
@@ -515,7 +515,7 @@ paths:
   /api/Order/confirm_pay/:
     post:
       operationId: api_Order_confirm_pay_create
-      tags:
+      tags: Orders/Confirm Payment
       - api
       requestBody:
         content:
@@ -550,7 +550,7 @@ paths:
         name: name__icontains
         schema:
           type: string
-      tags:
+      tags: Get All Product
       - api
       security:
       - jwtAuth: []
@@ -566,7 +566,7 @@ paths:
           description: ''
     post:
       operationId: api_Product_create
-      tags:
+      tags: Create New Product
       - api
       requestBody:
         content:
@@ -600,7 +600,7 @@ paths:
           format: uuid
         description: A UUID string identifying this product.
         required: true
-      tags:
+      tags: Get Each Product
       - api
       security:
       - jwtAuth: []
@@ -622,7 +622,7 @@ paths:
           format: uuid
         description: A UUID string identifying this product.
         required: true
-      tags:
+      tags: Update Each Product
       - api
       requestBody:
         content:
@@ -687,7 +687,7 @@ paths:
           format: uuid
         description: A UUID string identifying this product.
         required: true
-      tags:
+      tags: Delete Product
       - api
       security:
       - jwtAuth: []
@@ -880,7 +880,7 @@ paths:
           type: integer
         description: A unique integer value identifying this role.
         required: true
-      tags:
+      tags: Update Role
       - api
       requestBody:
         content:
@@ -911,7 +911,7 @@ paths:
           type: integer
         description: A unique integer value identifying this role.
         required: true
-      tags:
+      tags: Delete Role
       - api
       security:
       - jwtAuth: []
