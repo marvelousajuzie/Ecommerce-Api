@@ -35,7 +35,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 
         
-                          #PRODUCT VIEWSET           (API = WORKING)
+#                           #PRODUCT VIEWSET           (API = WORKING)
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     queryset = Product.objects.all().order_by('name')
@@ -56,33 +56,11 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(page, many= True)
         return paginator.get_paginated_response(serializer.data)
     
-    def post(self, request):   
-        serializer = self.serializer_class(data= request.data)
-        if serializer.is_valid(raise_exception= True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
-    def put(self, request, product_id):  
-        query_set = get_object_or_404(Product, product_id= product_id)
-        serializer = self.serializer_class(query_set, data=request.data,  partial= True)
-        if serializer.is_valid(raise_exception= True):
-            serializer.save()
-            return Response({'message': 'Updated Successfully'}, status= status.HTTP_200_OK)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    
-
-    def delete(self, request, product_id):  
-        product = get_object_or_404( Product, product_id= product_id)
-        product.delete()
-        return Response({'message': 'Product Deleted Successfully'}, status= status.HTTP_200_OK)
-    
 
 
                         #CATEGORY VIEWSET     (API = WORKING)
 class CategoryViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'put', 'delete']
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = EcommercePagination
@@ -101,29 +79,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(page, many= True)
         return paginator.get_paginated_response(serializer.data)
     
-    def post(self, request): 
-        serializer = self.serializer_class(data= request.data)
-        if serializer.is_valid(raise_exception= True):
-            serializer.save()
-            return Response(serializer.data, status= status.HTTP_201_CREATED)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    
-    def put(self, request, category_id): 
-        query_set = get_object_or_404( Category, category_id = category_id)
-        serializer = self.serializer_class(query_set, data= request.data)
-        if serializer.is_valid(raise_exception= True):
-            serializer.save()
-            return Response(serializer.data, status= status.HTTP_200_OK)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, category_id):    
-        query_set = get_object_or_404(Category, category_id= category_id)
-        query_set.delete()
-        return Response({'Deleted Sucessfully'}, status= status.HTTP_200_OK)
 
 
 
- 
+
                       #CART VIEWSET       (API = WORKING)
 class CartView(mixins.CreateModelMixin,mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Cart.objects.all()
@@ -150,14 +109,14 @@ class CartItemView(mixins.CreateModelMixin,mixins.ListModelMixin, viewsets.Gener
         
         elif self.request.method == 'PATCH':
             return UpdateCartSerializer
-        
-        
         return CartItemSerializer
     
     def get_serializer_context(self):
         return {"cart_id": self.kwargs['cart_pk']}
 
     
+
+
 
                  #ORDER VIEWSET                (API = WORKING)
 class OrderViewSet(viewsets.ModelViewSet):
@@ -344,6 +303,5 @@ class RoleViewSet(viewsets.ModelViewSet):
 
     # def perform_update(self, serializer):
     #     serializer.save()
-
 
 

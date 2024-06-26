@@ -54,12 +54,10 @@ router.register(r'AllUsers', AllUsersView, basename='allusers')
 
 
 urlpatterns = [
-
-    path('', include(router.urls)),
     path('', include(cart_router.urls)),
     path('', include(product_router.urls)),
     path('', include(order_router.urls)),
-  
+    path('', include(router.urls)),
 ]
 
 

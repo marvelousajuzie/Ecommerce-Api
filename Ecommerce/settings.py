@@ -22,7 +22,6 @@ ALLOWED_HOSTS = ['ecommerce-api-13.onrender.com']
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
