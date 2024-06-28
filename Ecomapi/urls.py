@@ -9,39 +9,39 @@ from rest_framework_nested.routers import NestedDefaultRouter
 
 router = DefaultRouter()
 
-router.register(r'Register', UsersRegisterViewSet,  basename= 'userrgister' ) 
+router.register(r'register', UsersRegisterViewSet,  basename= 'userrgister' ) 
 router.register(r'Login', UsersLoginViewSet, basename= 'userlogin')  
 router.register(r'Logout', LogoutViewSet, basename='logout')
 
 
-router.register(r'Product', ProductViewSet, basename= 'product') 
-product_router = routers.NestedDefaultRouter(router, r'Product', lookup = 'product')
+router.register(r'product', ProductViewSet, basename= 'product') 
+product_router = routers.NestedDefaultRouter(router, r'product', lookup = 'product')
 product_router.register(r"reviews",ReviewViewSet, basename ='reviews')
 
 
 
-router.register(r'Basket', CartView, basename='cart') 
-cart_router = routers.NestedDefaultRouter(router, r'Basket', lookup = 'cart')
-cart_router.register(r"Items",CartItemView, basename ='cart-items')
+router.register(r'basket', CartView, basename='cart') 
+cart_router = routers.NestedDefaultRouter(router, r'basket', lookup = 'cart')
+cart_router.register(r"items",CartItemView, basename ='cart-items')
 
 
-router.register(r'Order',OrderViewSet, basename= 'order')
-order_router = routers.NestedDefaultRouter(router, r'Order')
+router.register(r'order',OrderViewSet, basename= 'order')
+order_router = routers.NestedDefaultRouter(router, r'order')
 order_router.register(r"shipping", ShippingViewSet, basename= 'shipping' )
 
 
 
 
-router.register(r'Category', CategoryViewSet, basename='category')   
+router.register(r'category', CategoryViewSet, basename='category')   
 
 
-router.register(r'Role', RoleViewSet, basename='role')  
+router.register(r'role', RoleViewSet, basename='role')  
 
 
 
 
 
-router.register(r'AllUsers', AllUsersView, basename='allusers')  
+router.register(r'allUsers', AllUsersView, basename='allusers')  
 
 
 
