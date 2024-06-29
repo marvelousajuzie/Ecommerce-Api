@@ -113,6 +113,9 @@ class CartItemView(mixins.CreateModelMixin,mixins.ListModelMixin, viewsets.Gener
     
     def get_serializer_context(self):
         return {"cart_id": self.kwargs['cart_pk']}
+    
+
+
 
     
 
@@ -257,7 +260,7 @@ class ShippingViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch']
 
     permission_classes = [IsAuthenticated]
-    queryset = Shipping.objects.none()
+    queryset = Shipping.objects.none() 
    
     serializer_class = ShippingSerializer
 
