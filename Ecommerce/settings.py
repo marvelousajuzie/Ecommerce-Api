@@ -1,7 +1,9 @@
 from pathlib import Path
 import os
 from datetime import timedelta
-from decouple import config
+from decouple import config, Csv
+
+# config = Config()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,10 +13,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^1gudw)va@&1z(gq3!6c-*&h4686a8wc0w=@+#juedghwhohz5'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = config('DEBUG', default=False, cast=bool)
+
 
 
 ALLOWED_HOSTS = ['ecommerce-api-9.onrender.com']
@@ -78,11 +81,11 @@ WSGI_APPLICATION = 'Ecommerce.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Ecommerce',
-        'USER': 'postgres',
-        'PASSWORD': 'Django@2024',
-        'HOST': 'localhost',
-        'PORT': 8000
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': 5432
     }
 }
 
@@ -172,19 +175,12 @@ SECURE_SSL_REDIRECT = False
 
 
 
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'Chizurummarvelous14@gmail.com'  # Replace with your Gmail email address
-# EMAIL_HOST_PASSWORD = ''  # Replace with your Gmail password or app password
+
+
+FLW_SEC_KEY = config('FLW_SEC_KEY')
+
+# DEFAULT_FROM_EMAIL = 'Chizurummarvelous14@gmail.com'
 
 
 
-FLW_SEC_KEY = 'FLWSECK_TEST-39917726e5d83b479b6a4bbf5bbfb6ae-X'
-
-DEFAULT_FROM_EMAIL = 'Chizurummarvelous14@gmail.com'
-
-
-
-NEVERBOUNCE_API_KEY = 'private_7c87dc4d0c5cc55f5dc46922f4abea2a'
+NEVERBOUNCE_API_KEY = config('NEVERBOUNCE_API_KEY')
