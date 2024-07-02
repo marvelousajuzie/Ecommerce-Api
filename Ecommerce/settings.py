@@ -194,13 +194,13 @@ SPECTACULAR_SETTINGS = {
 
 
 
-FLW_SEC_KEY = config('FLW_SEC_KEY')
+FLW_SEC_KEY = config('FLW_SEC_KEY', default='dummy_key_for_dev')
 
 # DEFAULT_FROM_EMAIL = 'Chizurummarvelous14@gmail.com'
 
 
 
-NEVERBOUNCE_API_KEY = config('NEVERBOUNCE_API_KEY')
+NEVERBOUNCE_API_KEY = config('NEVERBOUNCE_API_KEY', default = 'backend_key')
 
 
                           #SECURITY
