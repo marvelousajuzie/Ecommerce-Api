@@ -9,11 +9,13 @@ djangorestframework==3.15.2
 djangorestframework-simplejwt==5.3.1
 drf-nested-routers==0.94.1
 drf-spectacular==0.27.2
+gunicorn==22.0.0
 idna==3.7
 inflection==0.5.1
 jsonschema==4.22.0
 jsonschema-specifications==2023.12.1
 neverbounce-sdk==4.3.0
+packaging==24.1
 pillow==10.4.0
 psycopg2==2.9.9
 PyJWT==2.8.0

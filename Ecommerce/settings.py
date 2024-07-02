@@ -26,8 +26,8 @@ DEBUG = os.environ.get('DEBUG', 'True')=="True"
 
 
 
-# ALLOWED_HOSTS = ['ecommerce-api-9.onrender.com']
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['ecommerce-api-9.onrender.com']
+# ALLOWED_HOSTS = []
     
 
 # Application definition
